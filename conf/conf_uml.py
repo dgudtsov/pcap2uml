@@ -1,15 +1,15 @@
 
-defaul_cap_filter = "sip||sccp||diameter"
-default_uml_file="./out.uml"
+### Customer specific configuration
 
 # define your known UML participants here
 # key can be:
-# - ip address (for SIP & Diameter)
+# - ip address (for HTTP, SIP & Diameter)
 # - SCCP GT (global title) for MAP & CAMEL
 # it is allowed to define multiple keys (even IP & GT) pointing to the same
 # node
 # !!! it doesn't matter order of definition
 # this list is unordered
+
 participants ={
     '1.1.1.1':'TAS'
     ,'2.2.2.2':'CSCF'
@@ -24,10 +24,12 @@ participants ={
     ,'79444444444':'TAS'
     }
 
+
 # here you define the same set of participants
 # but order of declaration is important
 # the only name of participant has a matter, other parameters are just for
 # decoration purpose
+
 uml_intro ="""
 @startuml
 hide unlinked
@@ -50,6 +52,12 @@ autonumber "<b>[000]"
 """
 # you can define your own UML style
 
+### End of Customer specific configuration
+
+defaul_cap_filter = "sip||sccp||diameter||http"
+default_uml_file="./out.uml"
+
+
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining
 colors = [
@@ -70,12 +78,14 @@ uml_msg_color = {
              "diameter":"black"
              ,"gsm_map":"black"
              ,"camel":"black"
+             ,"http":"green"
              }
 
 uml_line_style = {
-              "diameter":"-[#black]>"
-              ,"gsm_map":"-[#black]>"
-              ,"camel":"-[#black]>"
+              "diameter":"-[#black]/"
+              ,"gsm_map":"-[#black]>o"
+              ,"camel":"-[#black]>o"
+              ,"http":"-[#green]>>"
               }
 
 # UML Draw templates
@@ -105,9 +115,15 @@ proto_formatter = {
                 "{src} {line} {dst} : <color {color}> {cmd_code} \\n {data_reference} \\n {3gpp_service_ind} \n \n"
             ,"response": "{src} {line} {dst} : <color {color}> {result_code} {experimental_result_code} \n \n"
             }
+    ,"http": {
+              "request": "{src} {line} {dst} : <color {color}> {request_method} {request_uri} \\n {x_3gpp_asserted_identity} \\n {content_type} \n \n"
+              ,"response": "{src} {line} {dst} : <color {color}> {response_code} {response_phrase} \\n {content_type} \n \n"
+
+
+              }
     }
 
-uml_draw_keys = ['local','gsm_old_localValue','method','cmd_code']
+uml_draw_keys = ['local','gsm_old_localValue','method','cmd_code','request_method']
 
 proto_msg_skip = {"sip": {
                           "method" : ['PRACK', 'ACK']
@@ -147,4 +163,10 @@ headers = {
                         ,"short":
                                 ['flags_request']
                         }
+           ,"http": {
+                     "short": ['request_uri','request_method','response_code','response','response_phrase', 'request','content_length', 'content_type']
+                     }
+           ,"http_request_line": {
+                                  "short": ['x-3gpp-asserted-identity']
+                                  }
     }
