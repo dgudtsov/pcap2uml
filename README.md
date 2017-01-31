@@ -24,21 +24,25 @@ Plantuml: http://plantuml.com/download
 edit conf/conf_uml.py file:  
 1. define 'participants' dict  
 2. define 'uml_intro'  
+3. define plantuml library and java path in JAVA_BIN and plantuml_jar params 
+
 
 # Usage
 
 run:  
-./pcap2uml.py -i input.pcap -o out.uml -y filter  
+./pcap2uml.py -i input.pcap -o out.uml -y filter -t format
 
 where:  
 input.pcap - source pcap (mandatory)  
 out.uml - result diagram in PlanUML format (optional, default is ./out.uml)  
 filter - wireshark view filter (optional, default = 'sip||sccp||diameter||http')  
+format - png,svg,eps,pdf (optional)
 
 As a result, plantuml diagram will be generated.  
+If you have defined -t option, then appropriate document will be generated as well along with uml source
 
-Then, to generate graphical version of diagram, run:  
-java -jar plantuml.jar -tpng out.uml  
+Then, to generate graphical version of diagram, run (if you didn't define -t option):  
+java -jar plantuml.jar -tpng out.uml
 
 The plantuml will generate out.png in result.
 

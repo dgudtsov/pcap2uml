@@ -32,6 +32,9 @@ participants ={
 
 uml_intro ="""
 @startuml
+/'
+{comment}
+'/
 hide unlinked
 
 participant "UE-A" as 1.2.1.2
@@ -54,8 +57,34 @@ autonumber "<b>[000]"
 
 ### End of Customer specific configuration
 
+
+uml_comment_template = """
+source file: {cap_file}
+current dir: {dir}
+filter: {cap_filter}
+generated at: {datetime}
+using: {prog}
+"""
+
+uml_end="""
+legend right
+{legend}
+endlegend
+@enduml
+"""
+
+uml_delay = "\n ... {seconds} seconds later ... \n"
+
+# in seconds
+timeframe_timeout = 2
+
+
 defaul_cap_filter = "sip||sccp||diameter||http"
 default_uml_file="./out.uml"
+
+# plantuml output
+JAVA_BIN = 'java'
+plantuml_jar='/home/smile/soft/plantuml/plantuml.jar'
 
 
 # FOR SIP ONLY
@@ -99,21 +128,37 @@ proto_formatter = {
                  "request": "{src} {line} {dst} : <color {color}> {gsm_old_localValue} {gsm_old_routingInfo} \n \n"
                 }
     ,"sip": {
-            "INVITE" : "{src} {line} {dst} : <color {color}> {request_line} {status_line} \\n from: {from_user} \\n to: {to_user} \\n callid: {call_id} \\n {sdp}  \n \n"
-            ,"reINVITE" : "{src} {line} {dst} : <color {color}> re-INIVITE \\n callid: {call_id} \\n {sdp}  \n \n"
-            ,"REFER" : "{src} {line} {dst} : <color {color}> {request_line} {status_line} \\n from: {from_user} \\n to: {to_user} \\n refer-to: {refer_to:.40} \\n referred-by: {referred_by} \\n callid: {call_id} \n \n"
+            "INVITE" : "{src} {line} {dst} : {frame_num} <color {color}> {request_line} {status_line} \\n from: {from_user} \\n to: {to_user} \\n callid: {call_id} \\n {route} \\n supported: {supported} \\n p_early_media: {p_early_media} \\n require: {require} \\n {sdp}  \n \n"
+            ,"reINVITE" : "{src} {line} {dst} : {frame_num} <color {color}> re-INIVITE \\n callid: {call_id} \\n {route} \\n supported: {supported} \\n p_early_media: {p_early_media} \\n require: {require} \\n {sdp}  \n \n"
+            ,"REFER" : "{src} {line} {dst} : <color {color}> {request_line} {status_line} \\n from: {from_user} \\n to: {to_user} \\n refer-to: {refer_to:.40} \\n refered-by: {refered_by} \\n callid: {call_id} \n \n"
             ,"MESSAGE": "{src} {line} {dst} : <color {color}> {method} {status_line} \\n to: {to_user} \\n callid: {call_id} \\n {content_type} \\n {gsm_a_rp_msg_type} \\n gsm da: {gsm_sms_tp_da} \\n {gsm_sms_tp_mti}  \n \n"
             ,"INFO": "{src} {line} {dst} : <color {color}> {method} {status_line} \\n callid: {call_id} \\n {content_type} \n \n"
-            ,"request": "{src} {line} {dst} : <color {color}> {method} {status_line} \\n callid: {call_id} \\n {sdp}  \n \n"
-            ,"short" : "{src} {line} {dst} : <color {color}> {method} {status_line} \n \n"
+            ,"NOTIFY": "{src} {line} {dst} : <color {color}> {method} {status_line} \\n callid: {call_id} \\n event: {event} \\n state:{subscription_state} \n \n"
+            ,"request": "{src} {line} {dst} : {frame_num} <color {color}> {method} {status_line} \\n callid: {call_id} \\n {sdp}  \n \n"
+            ,"short" : "{src} {line} {dst} : {frame_num} <color {color}> {method} {status_line} \n \n"
             }
     ,"diameter": {
             "request": "{src} {line} {dst} : <color {color}> {cmd_code} \n \n"
+
+        # Sh
             ,"Command Code: 308 Subscribe-Notifications":
                 "{src} {line} {dst} : <color {color}> {cmd_code} \\n {data_reference} \\n {subs_req_type} \\n {send_data_indication} \\n {3gpp_service_ind} \n \n"
             ,"Command Code: 306 User-Data":
                 "{src} {line} {dst} : <color {color}> {cmd_code} \\n {data_reference} \\n {3gpp_service_ind} \n \n"
             ,"response": "{src} {line} {dst} : <color {color}> {result_code} {experimental_result_code} \n \n"
+
+        # Rx
+            ,"Command Code: 265 AA":
+                "{src} {line} {dst} : <color {color}> {cmd_code} \\n {service_info_status} \\n {specific_action} \n \n"
+
+            ,"Command Code: 258 Re-Auth":
+                "{src} {line} {dst} : <color {color}> {cmd_code} \\n {specific_action} \n \n"
+
+            ,"Command Code: 274 Abort-Session":
+                "{src} {line} {dst} : <color {color}> {cmd_code} \\n {abort_cause} \n \n"
+
+            ,"Command Code: 275 Session-Termination":
+                "{src} {line} {dst} : <color {color}> {cmd_code} \\n {termination_cause} \n \n"
             }
     ,"http": {
               "request": "{src} {line} {dst} : <color {color}> {request_method} {request_uri} \\n {x_3gpp_asserted_identity} \\n {content_type} \n \n"
@@ -147,6 +192,12 @@ headers = {
                            [ 'request_line', 'status_line', 'method', 'cseq_method', 'cseq',
                            'status_code', 'from_user', 'to_user', 'refer_to', 'refered_by',
                            'content_length', 'content_type','call_id',
+                           # for preconditions and early media
+                           'require','supported','p_early_media',
+                           # notify
+                           'event','subscription_state',
+                           # have to be here to extract term/orig and skipifc params
+                           'route',
                            # MESSAGE parameters
                            'gsm_sms_tp_da']
 
@@ -159,7 +210,12 @@ headers = {
                           }
            ,"diameter": {
                         "long":
-                                ['auth_application_id','cmd_code','user_authorization_type','experimental_result_code','result_code','data_reference','subs_req_type','send_data_indication','3gpp_service_ind']
+                                ['auth_application_id','cmd_code','user_authorization_type',
+                                 'experimental_result_code','result_code','data_reference',
+                                 'subs_req_type','send_data_indication','3gpp_service_ind'
+                                 ,'service_info_status','specific_action'
+                                 ,'abort_cause','termination_cause'
+                                 ]
                         ,"short":
                                 ['flags_request']
                         }
@@ -170,3 +226,8 @@ headers = {
                                   "short": ['x-3gpp-asserted-identity']
                                   }
     }
+
+header_params = {
+          "route" : ['orig','mode=terminating','skipIFC']
+
+          }

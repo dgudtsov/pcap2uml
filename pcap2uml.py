@@ -9,7 +9,7 @@ It defines classes_and_methods
 
 @author:     Denis Gudtsov
 
-@copyright:  2016 Denis Gudtsov. All rights reserved.
+@copyright:  2016-2017 Denis Gudtsov. All rights reserved.
 
 @license:    GPL
 
@@ -19,18 +19,21 @@ It defines classes_and_methods
 
 import sys
 import os
+import subprocess
 from optparse import OptionParser
 import pyshark
 import textwrap
+import re
 
 from conf.conf_uml import *
 from textwrap import dedent
 
+from datetime import timedelta, datetime
 
 __all__ = []
-__version__ = 0.2
+__version__ = 0.3
 __date__ = '2016-10-18'
-__updated__ = '2016-10-21'
+__updated__ = '2017-01-30'
 
 DEBUG = 0
 TESTRUN = 0
@@ -40,9 +43,11 @@ unkn_participants = {}
 
 # Accounts for participants
 class Participant(object):
-    def __init__ (self,participant):
+    def __init__ (self,participant,mode_term_orig=None):
         if participant in participants:
             self.name = participants[participant]
+            if mode_term_orig != None:
+                self.name +="_"+mode_term_orig
         else:
             if DEBUG: print "unknown participant: ", participant
             self.name = participant
@@ -57,6 +62,9 @@ class Calls(object):
     calls_processed = []
 
     def call_proceeded(self,msg_digest):
+        """
+        append msg_digest into calls_processed list
+        """
         self.calls_processed.append(msg_digest)
 
     def is_call_proceeded(self,msg_digest):
@@ -102,6 +110,15 @@ class Message(object):
         self.proto = layer.layer_name
         self.process_headers(layer)
         self.layer = layer
+        
+        # [a[s] for s in a if "sip2" in s]
+ 
+        # filling object's list according to proto value
+        # if message is not defined in skip, then will be ''
+#        self.msg_skip = [proto_msg_skip[s] for s in proto_msg_skip if self.proto in s]
+        
+        if self.proto in proto_msg_skip:
+            self.msg_skip = proto_msg_skip[self.proto]
 
         self.__draw_key__()
 
@@ -158,6 +175,12 @@ class Message(object):
 
         pass
         return result
+    
+    def skip(self):
+        #                     if (layer.cmd_code not in proto_msg_skip[layer.layer_name]['cmd_code']) :
+        if (self.msg_params['cmd_code'] not in self.msg_skip['cmd_code']):
+            return False
+        return True
 
 # Specific class for SIP messages
 class Message_SIP(Message):
@@ -166,6 +189,7 @@ class Message_SIP(Message):
 
         Message.__init__(self,layer)
         self.msg_params["sdp"] = ""
+        self.msg_params["mode_term_orig"] = "term"
 
     def update_digest(self):
         self.msg_digest = dict( call_id = self.call_id, cseq = self.cseq, src = self.src, dst = self.dst )
@@ -173,6 +197,21 @@ class Message_SIP(Message):
     def get_hash(self):
         return dict(call_id = self.call_id, cseq = self.cseq, method = self.method)
 
+    def has_sip_route(self):
+        r = len(self.route) > 0
+        return r
+    
+    def route_parse(self,layer):
+        route_str =""
+        for p in layer.route_param.fields:
+            for param in header_params['route']:
+                if param == p.showname_value:
+                    route_str += p.showname_value + " "
+                    if param == 'orig': self.mode_term_orig = 'orig'
+        
+        self.msg_params['route'] = route_str
+                    
+    
     def has_sdp(self):
         return (self.content_length > 0) & (self.content_type == "application/sdp")
 
@@ -203,6 +242,19 @@ class Message_SIP(Message):
         if (s_attr): sdp_str += "s="+s_attr+" \\n "
 
         self.msg_params['sdp'] = sdp_str
+    
+    def skip(self):
+        """
+        if (((SIP.method not in proto_msg_skip[layer.layer_name]['method']) & \
+        (SIP.cseq_method not in proto_msg_skip[layer.layer_name]['method']) & \
+        (SIP.status_code not in proto_msg_skip[layer.layer_name]['status_code'])) | SIP.has_sdp() ) & \
+        (not sip_calls.is_call_proceeded(SIP.msg_digest)):
+        """
+        if (((self.msg_params['method'] not in self.msg_skip['method']) & \
+            (self.msg_params['cseq_method'] not in self.msg_skip['method']) & \
+            (self.msg_params['status_code'] not in self.msg_skip['status_code'])) | self.has_sdp() ):
+            return False
+        return True
 
 class Message_HTTP(Message):
 
@@ -229,8 +281,6 @@ class Message_HTTP(Message):
                                 value = ""
                             self.msg_params[field_name]=value
 #                        for mattr in self.sdp_media_attr.fields:
-
-
             pass
 
 
@@ -249,18 +299,47 @@ class UML(object):
 #        return tw
         return dedented_text
 
+    def shorter(self,strf):
+        return re.sub(r'^(.{10}).*(.{20})$', '\g<1>...\g<2>', strf)
+    
     def draw(self, MSG, line_style, color, style=None):
+        
+        params = MSG.msg_params.copy()
+        
+        params['frame_num'] = MSG.frame_num
+        
+    
+    # make call_id line shorter     
+        if 'call_id' in params: params['call_id'] = self.shorter(params['call_id'])
 
-        draw = proto_formatter[MSG.proto].get(style if (style) else MSG.draw_key,
+        if DEBUG:
+            tmp = proto_formatter[MSG.proto].get(style if (style) else MSG.draw_key,
+                                             proto_formatter[MSG.proto]["request"])
+            print "drawing frame: ",MSG.frame_num
+            print tmp
+        
+        try:
+            draw = proto_formatter[MSG.proto].get(style if (style) else MSG.draw_key,
                                              proto_formatter[MSG.proto]["request"]).format(
                                                  line = line_style,
                                                  color=color,
-                                                 **MSG.msg_params)
+                                                 **params)
+        except KeyError, e:
+            print 'I got a KeyError - reason "%s"' % str(e)
+            print 'Check template: %s' % proto_formatter[MSG.proto].get(style if (style) else MSG.draw_key,
+                                             proto_formatter[MSG.proto]["request"])
 
-        self.uml += self.normalize(draw)
+        else:
+            self.uml += self.normalize(draw)
 
-    def finalize(self):
-        self.uml +="\n@enduml\n"
+    def delay(self,delay_sec):
+        """
+        Add delay into diagram
+        """
+        self.uml += uml_delay.format(seconds=delay_sec)
+        
+    def finalize(self,legend):
+        self.uml +=uml_end.format(legend=legend)
 
     def dump_to_file(self,filename):
         with open(filename, 'w') as uml_file:
@@ -274,12 +353,19 @@ def process_cap(cap_file, cap_filter, uml_file):
         sys.stderr.write("source pcap file is not found %s \n",sys.exc_info())
         return 2
 
-
-    uml = UML(uml_intro)
+    print program_version_string
+    
+    uml_legend = uml_comment_template.format(datetime=datetime.now(),prog=program_version_string,cap_file=cap_file,cap_filter=cap_filter,dir=os.getcwd())
+    
+#    print uml_comment 
+    
+    uml = UML(uml_intro.format(comment=uml_legend))
 
     sip_calls = Calls()
 
     prev_sip_message={}
+    
+    last_frame_timestamp=0
 
     for i,frame in enumerate(cap):
         if 'sip' in frame:
@@ -289,7 +375,7 @@ def process_cap(cap_file, cap_filter, uml_file):
 
                     SIP = Message_SIP(layer)
 
-        #            SIP.frame_num = frame.number
+                    SIP.frame_num = frame.number
                     if DEBUG:
                         print "SIP frame: ",i
                         print " src: ",frame.ip.src, " dst: ", frame.ip.dst, " proto: ", frame.ip.proto
@@ -301,11 +387,18 @@ def process_cap(cap_file, cap_filter, uml_file):
 
                     if SIP.has_sdp():
                         SIP.sdp_parse(layer)
+                    
+                    if SIP.has_sip_route():
+                        SIP.route_parse(layer)
 
         #            src, dst = participants.get(frame.ip.src, frame.ip.src), participants.get(frame.ip.dst, frame.ip.dst)
 
+#                     SIP.add_param("src",Participant(frame.ip.src,SIP.mode_term_orig).name)
+#                     SIP.add_param("dst",Participant(frame.ip.dst,SIP.mode_term_orig).name)
+
                     SIP.add_param("src",Participant(frame.ip.src).name)
                     SIP.add_param("dst",Participant(frame.ip.dst).name)
+
 
                     call_id_reinv = not sip_calls.is_first_callid(SIP.call_id)
 
@@ -316,10 +409,20 @@ def process_cap(cap_file, cap_filter, uml_file):
 
 
                     #print src," ",line_style," ", dst," : ", request_line, status_line,'\\n call-id:',call_id
-                    if (((SIP.method not in proto_msg_skip[layer.layer_name]['method']) & \
-                        (SIP.cseq_method not in proto_msg_skip[layer.layer_name]['method']) & \
-                        (SIP.status_code not in proto_msg_skip[layer.layer_name]['status_code'])) | SIP.has_sdp() ) & \
-                        (not sip_calls.is_call_proceeded(SIP.msg_digest)):
+                    
+#                    if (((SIP.method not in proto_msg_skip[layer.layer_name]['method']) & \
+#                        (SIP.cseq_method not in proto_msg_skip[layer.layer_name]['method']) & \
+#                        (SIP.status_code not in proto_msg_skip[layer.layer_name]['status_code'])) | SIP.has_sdp() ) & \
+                    if (not SIP.skip()) & (not sip_calls.is_call_proceeded(SIP.msg_digest)):
+                        
+                        if last_frame_timestamp > 0 :
+                            curr_frame_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
+                            time_diff = curr_frame_timestamp - datetime.fromtimestamp(float(last_frame_timestamp))
+                            
+                            if ( time_diff.seconds > timeframe_timeout ):
+                                uml.delay(time_diff.seconds)
+                        
+                        last_frame_timestamp = frame.sniff_timestamp
 
                         sip_calls.call_proceeded(SIP.msg_digest)
 
@@ -330,18 +433,21 @@ def process_cap(cap_file, cap_filter, uml_file):
                             uml.draw(SIP, line_style, color,"reINVITE")
 
                         else:
-
                             uml.draw(SIP, line_style, color)
 
                         prev_sip_message = SIP.get_hash()
+                        
+
 
                         if DEBUG: print "..."
 
         elif 'diameter' in frame:
             for layer in frame.layers:
                 if (layer.layer_name in ['diameter']):
-                    if (layer.cmd_code not in proto_msg_skip[layer.layer_name]['cmd_code']) :
-                        DIAM = Message (layer)
+#                    if (layer.cmd_code not in proto_msg_skip[layer.layer_name]['cmd_code']) :
+                    DIAM = Message (layer)
+                    
+                    if not DIAM.skip():
 
                         DIAM.add_param("src",Participant(frame.ip.src).name)
                         DIAM.add_param("dst",Participant(frame.ip.dst).name)
@@ -376,7 +482,7 @@ def process_cap(cap_file, cap_filter, uml_file):
                         else:
                             uml.draw(HTTP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
 
-    uml.finalize()
+    uml.finalize(uml_legend)
 
     uml.dump_to_file(uml_file)
 
@@ -386,21 +492,24 @@ def process_cap(cap_file, cap_filter, uml_file):
         print "all unknown particiapnts:"
         print unkn_participants
 
-    print "output wrote into file ",uml_file
+    print "uml output wrote into file ",uml_file
 
-    print "to visualize it, run: java -jar plantuml.jar -tpng ",uml_file
+#    print "to visualize it, run: java -jar plantuml.jar -tpng ",uml_file
 
 def main(argv=None):
     '''Command line options.'''
 
     program_name = os.path.basename(sys.argv[0])
-    program_version = "v0.2"
+    program_version = "%s" % __version__
     program_build_date = "%s" % __updated__
 
-    program_version_string = '%%prog %s (%s)' % (program_version, program_build_date)
+#    program_version_string = '%%prog %s (%s)' % (program_version, program_build_date)
+    global program_version_string 
+    program_version_string = '%s %s (%s)' % (program_name,program_version, program_build_date)
+    
     #program_usage = '''usage: spam two eggs''' # optional - will be autogenerated by optparse
-    program_longdesc = '''''' # optional - give further explanation about what the program does
-    program_license = "Copyright 2016 Denis Gudtsov (CPM Ltd)                                            \
+    program_longdesc = '''pcap to plantuml converter''' # optional - give further explanation about what the program does
+    program_license = "Copyright (c) 2016-2017 Denis Gudtsov (CPM Ltd)                                            \
                 Licensed under the Apache License 2.0\nhttp://www.apache.org/licenses/LICENSE-2.0"
 
     if argv is None:
@@ -410,6 +519,9 @@ def main(argv=None):
         parser = OptionParser(version=program_version_string, epilog=program_longdesc, description=program_license)
         parser.add_option("-i", "--in", dest="cap_file", help="set input pcap [default: %default]", metavar="FILE")
         parser.add_option("-o", "--out", dest="uml_file", help="set output uml [default: %default]", metavar="FILE")
+        parser.add_option("-t", "--to", dest="render_format", help="set output image format: png,svg,eps,pdf [default: %default]", metavar="FILE")        
+#        parser.add_option("-p", "--pdf", dest="pdf", help="workaround pdf generation [default: %default]", metavar="FILE")
+        
         parser.add_option("-y", "--filter", dest="cap_filter", help="set pcap filter [default: %default]", metavar="FILTER")
         parser.add_option("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %default]")
 
@@ -432,6 +544,14 @@ def main(argv=None):
             print("outfile = %s" % opts.uml_file)
         if opts.cap_filter:
             print("filter = %s" % opts.cap_filter)
+        
+#        if opts.render_pdf:
+#            opts.render_format='svg'
+#            print("workaround pdf generation using rsvg-convert is enabled")
+        
+        if opts.render_format:
+            print("render format = %s" % opts.render_format)
+            
 
     except Exception, e:
         indent = len(program_name) * " "
@@ -442,6 +562,16 @@ def main(argv=None):
 
     # MAIN BODY #
     process_cap(cap_file = opts.cap_file, cap_filter = opts.cap_filter, uml_file = opts.uml_file)
+    
+    # process UML file
+    if opts.render_format:
+        # java -jar /home/smile/soft/plantuml/plantuml.jar -tpng /tmp/out.uml
+        plantuml_format = "-t"+opts.render_format
+#        print plantuml_format
+        exec_string = JAVA_BIN+" -jar "+plantuml_jar+" "+plantuml_format+" "+opts.uml_file
+        print "rendering UML with %s" % exec_string
+        subprocess.call([JAVA_BIN, "-jar", plantuml_jar,plantuml_format,opts.uml_file])
+        print "%s output wrote into place of source uml file " % opts.render_format    
 
 
 if __name__ == "__main__":
