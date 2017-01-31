@@ -51,7 +51,7 @@ The plantuml will generate out.png in result.
 If you didn't define all parties in 'participants' dict in conf/conf_uml.py file, then program will dump list of undefined participants for you. You can copy that list and paste it into configuration file and then fill it values with appropriate names.
 
 Please note about filter syntax. It should be escaped and do not contains whitespaces, e.g.:
-sip.Call-ID==\"0feX8451416300Q3beGhEfIgAke@SIP\"\|\|sip.Call-ID==\"0050569E78EF-554c-acc81700-becf6-588f3c46-495a\"
+sip.Call-ID==\"0feX8451416300Q3beGhEfIgAke@SIP\"\\|\\|sip.Call-ID==\"0050569E78EF-554c-acc81700-becf6-588f3c46-495a\"
 
 # Advanced usage
 
