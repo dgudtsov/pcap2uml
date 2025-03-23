@@ -60,6 +60,11 @@ java -jar plantuml.jar -tpng out.uml
 
 The plantuml will generate out.png in result.
 
+Or now you can generate in multiple formats at one pass:
+python3 pcap2uml.py -i pcap.pcap -o out.uml -t png -t svg -t jpg
+
+Thus you will get uml output plus png, jpg and svg are generated
+
 ## Usage notice
 
 If you didn't define all parties in 'participants' dict in conf/conf_uml.py file, then program will dump list of undefined participants for you. You can copy that list and paste it into configuration file and then fill it values with appropriate names.
