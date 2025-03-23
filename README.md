@@ -9,9 +9,7 @@ Uses pyshark library: http://kiminewt.github.io/pyshark/
 and plantuml sequence diagram: http://plantuml.com/
 
 # Prerequisite
-Python 2 version >= 2.6  
-Python 3 is not supported  
-
+Python 3.6
 pyshark library https://github.com/KimiNewt/pyshark  
 
 To install it:  
