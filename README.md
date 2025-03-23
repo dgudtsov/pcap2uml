@@ -10,12 +10,28 @@ and plantuml sequence diagram: http://plantuml.com/
 
 # Prerequisite
 Python 3.6
+
 pyshark library https://github.com/KimiNewt/pyshark  
 
 To install it:  
 pip install pyshark  
 
 Plantuml: http://plantuml.com/download
+
+# What's new?
+* Rewrote to Python 3.6, now support latest pyshark and lxml
+
+* Added protocols:
+
+  * GVPv2
+  * PFCP
+  * S1AP
+
+* Improved protocol details render for diameter
+
+* Modified sip details render according to new version of pyshark lib
+
+* Now support multiple render_format, i.e. can generate png and svg at one pass
 
 # Configure
 
