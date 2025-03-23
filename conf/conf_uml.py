@@ -86,7 +86,7 @@ default_uml_file = "./out.uml"
 
 # plantuml output
 JAVA_BIN = '/usr/bin/java'
-plantuml_jar = '/home/smile/soft/plantuml/plantuml-1.2025.2.jar'
+plantuml_jar = '/home/denis/soft/plantuml/plantuml-1.2025.0.jar'
 
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining

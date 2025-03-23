@@ -29,15 +29,15 @@ import textwrap
 import re
 import time
 
-from conf.conf_uml3 import *
+from conf.conf_uml import *
 from textwrap import dedent
 
 from datetime import timedelta, datetime
 
 __all__ = []
-__version__ = 0.4
+__version__ = 0.5
 __date__ = '2025-03-19'
-__updated__ = '2025-03-19'
+__updated__ = '2025-03-24'
 
 DEBUG = 0
 TESTRUN = 0
