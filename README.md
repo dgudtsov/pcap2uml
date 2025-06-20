@@ -33,6 +33,8 @@ Plantuml: http://plantuml.com/download
 
 * Now support multiple render_format, i.e. can generate png and svg at one pass
 
+* Now participants configuration stored in separate file
+
 # Configure
 
 edit conf/conf_uml.py file:  

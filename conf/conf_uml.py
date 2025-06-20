@@ -11,24 +11,9 @@
 # !!! it doesn't matter order of definition
 # this list is unordered
 
-participants = {
-    '1.1.1.1':'TAS'
-    ,'2.2.2.2':'CSCF'
-# for example, one logical DRA has two instances
-    ,'3.3.3.3':'DRA'
-    ,'4.4.4.4':'DRA'
-# GT
-    ,'79111111111':'MSS'
-    ,'79222222222':'OCS'
-    ,'79333333333':'HLR'
-# TAS GT in addition to it's IP
-    ,'79444444444':'TAS'
-    }
+# now participants are stored in external file
+from conf.conf_participants import participants
 
-# here you define the same set of participants
-# but order of declaration is important
-# the only name of participant has a matter, other parameters are just for
-# decoration purpose
 
 uml_intro = """
 @startuml
@@ -36,22 +21,42 @@ uml_intro = """
 {comment}
 '/
 hide unlinked
+skinparam backgroundColor #EEEEEE
 
-participant "UE-A" as 1.2.1.2
 
-participant "UE-B" as 1.2.1.3
-
-participant "CSCF \\n 2.2.2.2" as CSCF
+participant UE
+participant "UE-A" as 1.2.3.6
+participant "UE-B" as 1.2.3.7
+participant "UAG \\n 10.2.23.159" as UAG
+participant "CSCF" as CSCF
+participant "TAS \\n 10.2.23.134 \\n 70772039000" as TAS
 participant "DRA" as DRA
 
-participant "TAS \\n 4.4.4.4 \\n 7944444444" as TAS
+participant eNB_1
+participant eNB_2
+participant eNB_3
+participant eNB_4
+participant eNB_5
+participant MME
+participant MME_1
+participant MME_2
+participant SPGWC
+participant SPGWU
+participant HSS
 
-participant "OCS \\n 79222222222" as OCS
+participant PGW
 
+participant PCRF
+
+participant "AGW \\n 10.2.23.143" as AGW
+participant "RMS" as RMS
+participant "MRF \\n 10.2.23.154" as MRF
+participant "MGCF/MSC \\n 10.68.19.1 \\n 79772539001" as MGCF
+participant "OCS \\n 79000490014" as OCS
+participant "BL \\n 79000490114" as BL
 participant "HLR" as HLR
 
 autonumber "<b>[000]"
-
 """
 
 # you can define your own UML style
@@ -86,7 +91,7 @@ default_uml_file = "./out.uml"
 
 # plantuml output
 JAVA_BIN = '/usr/bin/java'
-plantuml_jar = '/home/denis/soft/plantuml/plantuml-1.2025.0.jar'
+plantuml_jar = '/home/smile/soft/plantuml/plantuml-1.2025.2.jar'
 
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining
@@ -146,9 +151,9 @@ proto_formatter = {
         "short": "{src} {line} {dst} : {frame_num} <color {color}> {method} {status_line} \n\n"
     },
     "diameter": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \n\n",
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
         
-        "response": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {charging_rule_base_name} \\n \
+        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {charging_rule_base_name} \\n \
 {charging_rule_name} \\n {qos_class_identifier} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {apn_aggregate_max_bitrate_dl} {apn_aggregate_max_bitrate_ul} \\n \
@@ -156,45 +161,45 @@ proto_formatter = {
         
         #Sh
         #"Command Code: Subscribe-Notifications 
-        "308": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {data_reference} \\n {subs_req_type} \\n {send_data_indication} \\n {3gpp_service_ind} \n\n",
+        "308": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {data_reference} \\n {subs_req_type} \\n {send_data_indication} \\n {3gpp_service_ind} \n\n",
         #"Command Code: User-Data (
-        "306": "{src} {line} {dst} : Frame #{frame_num}at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {data_reference} \\n {3gpp_service_ind} \n\n",
+        "306": "{src} {line} {dst} : Frame #{frame_num}at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {data_reference} \\n {3gpp_service_ind} \n\n",
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {cc_request_type} \\n {event_trigger} \\n {qos_class_identifier} \\n {bearer_usage} \n\n",
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n {ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \n\n",
         
         #Rx
         #"Command Code: AA (
-        "265": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n \
+        "265": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n \
 {af_signalling_protocol} \\n {service_info_status} \\n {specific_action} \\n {flow_usage} \\n {media_type} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {rs_bandwidth} {rr_bandwidth} \n\n ",
         
         #"Command Code: Re-Auth (
-        "258": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {specific_action} \\n {qos_class_identifier} \\n \
+        "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {specific_action} \\n {qos_class_identifier} \\n \
 {charging_rule_base_name} \\n {charging_rule_name} \\n {af_signalling_protocol} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {guaranteed_bitrate_dl} \\n {guaranteed_bitrate_ul} \\n \
 {apn_aggregate_max_bitrate_dl} \\n {apn_aggregate_max_bitrate_ul} \n\n",
         
         #"Command Code: Abort-Session (
-        "274": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {abort_cause} \n\n",
+        "274": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {abort_cause} \n\n",
         #"Command Code: Session-Termination (
-        "275": "{src} {line} {dst} : Frame #{frame_num} at {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {termination_cause} \n\n"
+        "275": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {termination_cause} \n\n"
     },
     "http": {
         "request": "{src} {line} {dst} : <color {color}> {request_method} {request_uri} \\n {x_3gpp_asserted_identity} \\n {content_type} \n\n",
         "response": "{src} {line} {dst} : <color {color}> {response_code} {response_phrase} \\n {content_type} \n\n"
     },
     "gtpv2": {
-        "request": "{src} {line} {dst} : {frame_num} <color {color}> {message_type} \\n {seq} \\n {teid} \\n {cause} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {message_type} \\n {seq} \\n {teid} \\n {cause} \n\n"
     },
     "s1ap": {
-        "request": "{src} {line} {dst} : {frame_num} <color {color}> {procedurecode} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {procedurecode} \n\n"
     },
    "pfcp": {
-        "request": "{src} {line} {dst} : {frame_num} <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
    }
 }
 
@@ -209,7 +214,10 @@ proto_msg_skip = {
         # filter by private (short) cmd code
         "__cmd_code__": ['280','996','999'],
         "__applicationid__":['16777294']
-    }
+    },
+    "gtpv2": {
+        "__message_type__":['1','2']
+        }
 }
 
 sdp_media_attrs = ['sendrecv', 'sendonly', 'recvonly', 'inactive']
@@ -249,7 +257,8 @@ headers = {
             'experimental_result_code', 'result_code', 'data_reference',
             'subs_req_type', 'send_data_indication', '3gpp_service_ind',
             'service_info_status', 'specific_action', 'abort_cause', 'termination_cause',
-            'cc_request_type','ip_can_type','bearer_usage',
+            'cc_request_type','ip_can_type','bearer_usage','rat_type',
+            'network_request_support',
             'af_signalling_protocol',
             'rx_request_type','af_application_identifier',
             'qos_information','rs_bandwidth','rr_bandwidth'

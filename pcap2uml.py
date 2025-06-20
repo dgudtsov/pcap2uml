@@ -35,9 +35,9 @@ from textwrap import dedent
 from datetime import timedelta, datetime
 
 __all__ = []
-__version__ = 0.5
+__version__ = 0.6
 __date__ = '2025-03-19'
-__updated__ = '2025-03-24'
+__updated__ = '2025-06-20'
 
 DEBUG = 0
 TESTRUN = 0
@@ -152,6 +152,10 @@ class Message(object):
 class Message_GTP(Message):
     def __init__(self, layer):
         super().__init__(layer)
+    def skip(self):
+        for key,values in self.msg_skip.items():
+            if self.msg_params[key] in values:
+                return True
 
 # Specific class for GTP messages
 class Message_PFCP(Message):
@@ -377,10 +381,15 @@ def process_cap(cap_file, cap_filter, uml_file):
                 if layer.layer_name == 'sip':
                     SIP = Message_SIP(layer)
                     SIP.frame_num = frame.number
+                    
+                    if len(SIP.method)==0 and len(SIP.status_code)==0:
+                        print("malformed SIP packet in frame #",SIP.frame_num)
+                        continue
+                    
                     if DEBUG:
-                        print("SIP frame:", frame.number)
+                        print("SIP frame:", SIP.frame_num)
                         print(" src:", frame.ip.src, " dst:", frame.ip.dst)
-                        print(" call-id:", frame.sip.call_id)
+                        print(" call-id:", SIP.call_id)
 
                     if SIP.has_sdp():
                         SIP.sdp_parse(layer)
@@ -400,9 +409,9 @@ def process_cap(cap_file, cap_filter, uml_file):
                     SIP.add_param("dst", Participant(dst).name)
 
                     #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-#                    SIP.add_param("sniff_timestamp",datetime.fromtimestamp(float(frame.sniff_timestamp)))
+#                    SIP.add_param("sniff_timestamp",datetime.utcfromtimestamp(float(frame.sniff_timestamp)))
                     
-                    SIP.sniff_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
+                    SIP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
 
 
                     call_id_reinv = not sip_calls.is_first_callid(SIP.call_id)
@@ -412,8 +421,8 @@ def process_cap(cap_file, cap_filter, uml_file):
 
                     if (not SIP.skip()) and (not sip_calls.is_call_proceeded(SIP.msg_digest)):
 #                         if last_frame_timestamp > 0:
-#                             curr_frame_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
-#                             time_diff = curr_frame_timestamp - datetime.fromtimestamp(float(last_frame_timestamp))
+#                             curr_frame_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
+#                             time_diff = curr_frame_timestamp - datetime.utcfromtimestamp(float(last_frame_timestamp))
 #                             if time_diff.seconds > timeframe_timeout:
 #                                 uml.delay(time_diff.seconds)
                         
@@ -435,11 +444,24 @@ def process_cap(cap_file, cap_filter, uml_file):
                     DIAM = Message_Diam(layer)
                     DIAM.frame_num = frame.number
                     if not DIAM.skip():
-                        DIAM.add_param("src", Participant(frame.ip.src).name)
-                        DIAM.add_param("dst", Participant(frame.ip.dst).name)
+                        
+                        if hasattr(frame, 'ip'):
+                            src = frame.ip.src
+                            dst = frame.ip.dst
+                        elif hasattr(frame, 'ipv6'):
+                            src = frame.ipv6.src
+                            dst = frame.ipv6.dst
+                        else:
+                            print("malformed frame #",SIP.frame_num)
+                            continue
+
+                            
+                        
+                        DIAM.add_param("src", Participant(src).name)
+                        DIAM.add_param("dst", Participant(dst).name)
                         
                         #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-                        DIAM.sniff_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
+                        DIAM.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
                         
                         #default
                         line_style=uml_line_style[layer.layer_name]
@@ -479,13 +501,15 @@ def process_cap(cap_file, cap_filter, uml_file):
                 if layer.layer_name == 'gtpv2':
                     GTP = Message_GTP(layer)
                     GTP.frame_num = frame.number
-                    GTP.add_param("src", Participant(frame.ip.src).name)
-                    GTP.add_param("dst", Participant(frame.ip.dst).name)
-                        
-                        #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-                    GTP.sniff_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
                     
-                    uml.draw(GTP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
+                    if not GTP.skip():
+                        GTP.add_param("src", Participant(frame.ip.src).name)
+                        GTP.add_param("dst", Participant(frame.ip.dst).name)
+                            
+                            #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
+                        GTP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
+                        
+                        uml.draw(GTP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
 
         elif 's1ap' in frame:
             for layer in frame.layers:
@@ -497,7 +521,7 @@ def process_cap(cap_file, cap_filter, uml_file):
                     S1AP.add_param("dst", Participant(frame.ip.dst).name)
                         
                         #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-                    S1AP.sniff_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
+                    S1AP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
                     
                     uml.draw(S1AP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])                    
                     
@@ -510,7 +534,7 @@ def process_cap(cap_file, cap_filter, uml_file):
                     PFCP.add_param("dst", Participant(frame.ip.dst).name)
                         
                         #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-                    PFCP.sniff_timestamp = datetime.fromtimestamp(float(frame.sniff_timestamp))
+                    PFCP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
                     
                     uml.draw(PFCP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
                     
@@ -522,8 +546,13 @@ def process_cap(cap_file, cap_filter, uml_file):
 
     if unkn_participants:
         print("Unknown participants:")
-        print(unkn_participants)
+        print("--add this into conf_participants.py:")
+#        print(unkn_participants)
+        print (", ".join(map(lambda item: f"'{item[0]}':'NAME'", unkn_participants.items())))
 
+        print("\n--OR add this into participants.csv:")
+        print ("\n".join(map(lambda item: f"{item[0]},NAME", unkn_participants.items())))
+        print("\nReplacing NAME with actual node name\n")
     print("UML output written to", uml_file)
 
 def main(argv=None):
@@ -544,7 +573,7 @@ def main(argv=None):
         parser = OptionParser(version=program_version_string, epilog=program_license)
         parser.add_option("-i", "--in", dest="cap_file", help="Input pcap file")
         parser.add_option("-o", "--out", dest="uml_file", help="Output uml file")
-        parser.add_option("-t", "--to", dest="render_format", action="append", help="Output image format")
+        parser.add_option("-t", "--to", dest="render_format", action="append", help="Output image format: svg, eps, png, txt")
         parser.add_option("-y", "--filter", dest="cap_filter", help="Pcap filter")
         parser.add_option("-v", "--verbose", dest="verbose", action="count", help="Verbosity level")
 
@@ -559,15 +588,21 @@ def main(argv=None):
         print(f"Error: {e}")
         return 2
 
+    if opts.verbose:
+        print("verbose mode ON")
+        DEBUG=1
+    
     process_cap(opts.cap_file, opts.cap_filter, opts.uml_file)
 
-    for format in opts.render_format:
-        plantuml_format = f"-t{format}"
-        exec_string = f"{JAVA_BIN} -jar {plantuml_jar} {plantuml_format} {opts.uml_file}"
-        print(f"Rendering UML: {exec_string}")
-        subprocess.call([JAVA_BIN, "-jar", plantuml_jar, plantuml_format, opts.uml_file])
-    else:
-        print(f"output generated to: {opts.render_format}")
+    if opts.render_format is not None:
+        for format in opts.render_format:
+            plantuml_format = f"-t{format}"
+            exec_string = f"{JAVA_BIN} -jar {plantuml_jar} -duration -enablestats {plantuml_format} {opts.uml_file}"
+            print(f"Rendering UML: {exec_string}")
+            subprocess.call([JAVA_BIN, "-jar", plantuml_jar, plantuml_format, opts.uml_file])
+        else:
+            print(f"output generated to: {opts.render_format}")
+            print("for pdf use: inkscape input.svg -o output.pdf")
 
 if __name__ == "__main__":
     
