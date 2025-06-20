@@ -13,7 +13,7 @@ local plugin_info = {
     version = "1.1",
     author = "Denis Gudtsov",
     description = "Generate UML diagrams from pcap files using pcap2uml.py",
-    repository = "https://github.com/your-repo/pcap2uml"
+    repository = "https://github.com/dgudtsov/pcap2uml"
 }
 
 -- Register a dummy protocol to enable preferences
