@@ -34,6 +34,7 @@ Plantuml: http://plantuml.com/download
 * Now support multiple render_format, i.e. can generate png and svg at one pass
 
 * Now participants configuration stored in separate file
+* New experimental plugin for wireshark. Is doesn't ready for production yet, work in progress
 
 # Configure
 
