@@ -45,8 +45,16 @@ participant SPGWU
 participant HSS
 
 participant PGW
+participant PGW1
+participant PGW2
+participant PGW3
 
 participant PCRF
+
+participant PCSCF1
+participant PCSCF2
+participant PCSCF3
+
 
 participant "AGW \\n 10.2.23.143" as AGW
 participant "RMS" as RMS
@@ -91,7 +99,7 @@ default_uml_file = "./out.uml"
 
 # plantuml output
 JAVA_BIN = '/usr/bin/java'
-plantuml_jar = '/home/smile/soft/plantuml/plantuml-1.2025.2.jar'
+plantuml_jar = '/home/denis/soft/plantuml/plantuml-1.2025.2.jar'
 
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining
@@ -167,14 +175,15 @@ proto_formatter = {
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n {ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \n\n",
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n {ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
         
         #Rx
         #"Command Code: AA (
         "265": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n \
 {af_signalling_protocol} \\n {service_info_status} \\n {specific_action} \\n {flow_usage} \\n {media_type} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
-{rs_bandwidth} {rr_bandwidth} \n\n ",
+{rs_bandwidth} {rr_bandwidth} \\n \
+{framed_ip_address_ipv4} \n \n",
         
         #"Command Code: Re-Auth (
         "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {specific_action} \\n {qos_class_identifier} \\n \
@@ -261,7 +270,9 @@ headers = {
             'network_request_support',
             'af_signalling_protocol',
             'rx_request_type','af_application_identifier',
-            'qos_information','rs_bandwidth','rr_bandwidth'
+            'qos_information','rs_bandwidth','rr_bandwidth',
+            'framed_ip_address_ipv4',
+            'called_station_id'
         ],
         "short": ['flags_request'],
         # double will do the following:
