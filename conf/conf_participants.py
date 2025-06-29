@@ -2,6 +2,7 @@
 # Configuration for participants
 
 import csv
+import os
 
 # you can define it in external csv file in simple format, row by row (fields are comma separated):
 # ip_address1,participant_name1
@@ -9,15 +10,23 @@ import csv
 
 # Please note, name of participants can't contain the '-'
 
-participants_list="conf/participants.csv"
+#participants_list="conf/participants.csv"
+
+participants_dir="conf/participants"
+participants_suffix='.csv'
 
 participants = dict()
 
-with open(participants_list, newline='') as csvfile:
-    reader = csv.DictReader(csvfile,['IP','NAME'])
-    for row in reader:
-        if row['IP'] is not None and row['NAME'] is not None:
-            participants.update({row['IP']:row['NAME']})
+for path, directories, files in os.walk(participants_dir):
+    files.sort()
+    for inp in files:
+        if inp.lower().endswith(participants_suffix):
+            print("loading participants: "+inp)
+            with open(participants_dir+"/"+inp, newline='') as csvfile:
+                reader = csv.DictReader(csvfile,['IP','NAME'])
+                for row in reader:
+                    if row['IP'] is not None and row['NAME'] is not None:
+                        participants.update({row['IP']:row['NAME']})
 
 # OR you can still define dict of participants here below
 

@@ -449,8 +449,8 @@ def process_cap(cap_file, cap_filter, uml_file):
                             src = frame.ip.src
                             dst = frame.ip.dst
                         elif hasattr(frame, 'ipv6'):
-                            src = frame.ipv6.src
-                            dst = frame.ipv6.dst
+                            src = f"\"{frame.ipv6.src}\""
+                            dst = f"\"{frame.ipv6.dst}\""
                         else:
                             print("malformed frame #",SIP.frame_num)
                             continue

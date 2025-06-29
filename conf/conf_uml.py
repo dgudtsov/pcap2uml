@@ -99,7 +99,7 @@ default_uml_file = "./out.uml"
 
 # plantuml output
 JAVA_BIN = '/usr/bin/java'
-plantuml_jar = '/home/denis/soft/plantuml/plantuml-1.2025.2.jar'
+plantuml_jar = '/home/smile/soft/plantuml/plantuml-1.2025.2.jar'
 
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining
@@ -115,7 +115,9 @@ styles_appsid = {
     #ApplicationId: 3GPP Rx (16777236)
     "16777236":'-[#red]/',
     #ApplicationId: 3GPP S6a/S6d (16777251)
-    "16777251":'-[#green]/'
+    "16777251":'-[#green]/',
+    #ApplicationId: 3GPP S13/S13' (16777252)
+    "16777252":'-[#yellow]/'
     }
 
 # FOR OTHER PROTO
