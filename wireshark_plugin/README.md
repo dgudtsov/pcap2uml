@@ -5,5 +5,20 @@ Actually there are two types of plugins here:
 
 ## Diameter result summary
 
+### Installation:
+Copy plugin file [diameter_result_summary.lua](diameter_result_summary.lua) into folder depening on your OS:
+
+   - Linux: `~/.local/lib/wireshark/plugins` or `~/.wireshark/plugins`
+   - macOS: `~/Library/Application Support/Wireshark/plugins`
+   - Windows: `%APPDATA%\Wireshark\plugins`
+
+Restart wireshark!
+
+### Usage:
+1. Open pcap file
+2. Go to: Tools -> Diameter result code summary
+3. wait for the summary result
+
+
 Example output:
 ![Example output](diameter_result_summary_example.png)
