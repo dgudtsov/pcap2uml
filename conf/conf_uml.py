@@ -13,7 +13,7 @@
 
 # now participants are stored in external file
 from conf.conf_participants import participants
-
+import os
 
 uml_intro = """
 @startuml
@@ -99,7 +99,8 @@ default_uml_file = "./out.uml"
 
 # plantuml output
 JAVA_BIN = '/usr/bin/java'
-plantuml_jar = '/home/smile/soft/plantuml/plantuml-1.2025.2.jar'
+# use 'os.path.expanduser' to handle "~" in path name
+plantuml_jar = os.path.expanduser('~/soft/plantuml/plantuml-1.2025.2.jar')
 
 # FOR SIP ONLY
 # If callid index exceed list size, then color rules will be reused from begining
@@ -163,7 +164,7 @@ proto_formatter = {
     "diameter": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
         
-        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {charging_rule_base_name} \\n \
+        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} \\n {charging_rule_base_name} \\n \
 {charging_rule_name} \\n {qos_class_identifier} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {apn_aggregate_max_bitrate_dl} {apn_aggregate_max_bitrate_ul} \\n \

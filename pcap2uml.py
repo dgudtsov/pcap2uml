@@ -599,10 +599,11 @@ def main(argv=None):
             plantuml_format = f"-t{format}"
             exec_string = f"{JAVA_BIN} -jar {plantuml_jar} -duration -enablestats {plantuml_format} {opts.uml_file}"
             print(f"Rendering UML: {exec_string}")
-            subprocess.call([JAVA_BIN, "-jar", plantuml_jar, plantuml_format, opts.uml_file])
+            subprocess.call([JAVA_BIN, "-jar", plantuml_jar, "-duration","-enablestats",plantuml_format, opts.uml_file])
         else:
-            print(f"output generated to: {opts.render_format}")
+            print(f"output generated to: {opts.render_format}\n")
             print("for pdf use: inkscape input.svg -o output.pdf")
+            print("or: rsvg-convert -f pdf -o output.pdf input.svg")
 
 if __name__ == "__main__":
     
