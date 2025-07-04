@@ -274,6 +274,6 @@ local function init()
     
     -- Register menu items
 end
-
+if not gui_enabled() then return end
 -- Plugin initialization
 init() 

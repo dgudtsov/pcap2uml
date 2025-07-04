@@ -241,5 +241,6 @@ local function init()
     print("Diameter Result Summary Wireshark Plugin loaded successfully!")
 end
 
+if not gui_enabled() then return end
 -- Plugin initialization
 init() 

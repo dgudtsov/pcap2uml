@@ -48,6 +48,7 @@ participant PGW
 participant PGW1
 participant PGW2
 participant PGW3
+participant PGW4
 
 participant PCRF
 
@@ -178,7 +179,11 @@ proto_formatter = {
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n {ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n \
+{charging_rule_name} \\n \
+{pcc_rule_status} \\n \
+{rule_failure_code} \\n \
+{ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
         
         #Rx
         #"Command Code: AA (
@@ -288,7 +293,9 @@ headers = {
                   'max_requested_bandwidth_dl','max_requested_bandwidth_ul',
                   'guaranteed_bitrate_dl','guaranteed_bitrate_ul',
                   'flow_usage','media_type',
-                  'event_trigger'                  
+                  'event_trigger',
+                  'rule_failure_code',
+                  'pcc_rule_status'                  
                   ]
     },
     "http": {
