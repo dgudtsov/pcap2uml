@@ -45,6 +45,8 @@ PROFILE = 0
 
 unkn_participants = {}
 
+process_duration=0
+
 # Accounts for participants
 class Participant(object):
     def __init__(self, participant, mode_term_orig=None):
@@ -330,7 +332,10 @@ class UML(object):
             print(f'I got a KeyError - reason "{str(e)}"')
         else:
             self.uml += self.normalize(draw)
-
+    
+    def process(self,action):
+        self.uml += self.normalize(action)
+    
     def delay(self, delay_sec):
         self.uml += uml_delay.format(seconds=delay_sec)
         
@@ -476,6 +481,7 @@ def process_cap(cap_file, cap_filter, uml_file):
                             uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name])
                         else:
                             uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name], "response")
+                        
 
         elif 'sccp' in frame:
             for layer in frame.layers:
@@ -576,6 +582,7 @@ def main(argv=None):
         parser.add_option("-t", "--to", dest="render_format", action="append", help="Output image format: svg, eps, png, txt")
         parser.add_option("-y", "--filter", dest="cap_filter", help="Pcap filter")
         parser.add_option("-v", "--verbose", dest="verbose", action="count", help="Verbosity level")
+        parser.add_option("-p", "--process", dest="process", action="count", help="add process duration on each participant")
 
         parser.set_defaults(uml_file=default_uml_file, cap_filter=defaul_cap_filter)
         opts, args = parser.parse_args(argv)
@@ -591,6 +598,10 @@ def main(argv=None):
     if opts.verbose:
         print("verbose mode ON")
         DEBUG=1
+        
+    if opts.process:
+        print("process duration on")
+        process_duration=1
     
     process_cap(opts.cap_file, opts.cap_filter, opts.uml_file)
 

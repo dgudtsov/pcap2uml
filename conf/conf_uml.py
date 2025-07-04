@@ -90,6 +90,9 @@ endlegend
 # in seconds
 uml_delay = "\n... {seconds} seconds later...\n"
 
+uml_process_duration_activate='activate {participant}'
+uml_process_duration_deactivate='deactivate {participant}'
+
 # seconds to report period
 time_period=3
 
