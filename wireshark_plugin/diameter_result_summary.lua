@@ -170,11 +170,7 @@ local function generate_diam_stats()
         end
         table.sort(code_ip_app_rows, function(a, b)
             if a.code_num == b.code_num then
-                if a.ip == b.ip then
-                    return a.app_display < b.app_display
-                else
-                    return a.ip < b.ip
-                end
+                return a.count > b.count  -- Sort by count descending
             else
                 return a.code_num < b.code_num
             end
@@ -208,11 +204,8 @@ local function generate_diam_stats()
         -- Sort by code number, then by command code, then by application id
         table.sort(code_cmd_app_rows, function(a, b)
             if a.code_num == b.code_num then
-                if a.cmd_code == b.cmd_code then
-                    return a.app_display < b.app_display
-                else
-                    return a.cmd_code < b.cmd_code
-                end
+                        return a.count > b.count  -- Sort by count descending
+
             else
                 return a.code_num < b.code_num
             end
