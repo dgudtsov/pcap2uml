@@ -108,28 +108,28 @@ local function generate_diam_stats()
             ip_totals[src_ip] = ip_totals[src_ip] + 1
         end
 
-        -- Per-command-code and application id
-        if cc and code_fi.value > 2001 then
-            local cmd_code = tostring(cc.value)
-            local cmd_display = tostring(cc.display)
-            local app_display = app and tostring(app.display) or ""
-            if not cmd_result_counts[cmd_code] then
-                cmd_result_counts[cmd_code] = {}
-                cmd_result_names[cmd_code] = {}
-                cmd_totals[cmd_code] = 0
-                cmd_display_names[cmd_code] = cmd_display
-                app_display_names[cmd_code] = {}
-            end
-            local app_key = app_display
-            if not cmd_result_counts[cmd_code][val] then
-                cmd_result_counts[cmd_code][val] = {}
-            end
-            cmd_result_counts[cmd_code][val][app_key] = (cmd_result_counts[cmd_code][val][app_key] or 0) + 1
-            cmd_result_names[cmd_code][val] = name
-            cmd_totals[cmd_code] = cmd_totals[cmd_code] + 1
-            cmd_display_names[cmd_code] = cmd_display
-            app_display_names[cmd_code][app_key] = app_display
-        end
+        -- -- Per-command-code and application id
+        -- if cc and code_fi.value > 2001 then
+        --     local cmd_code = tostring(cc.value)
+        --     local cmd_display = tostring(cc.display)
+        --     local app_display = app and tostring(app.display) or ""
+        --     if not cmd_result_counts[cmd_code] then
+        --         cmd_result_counts[cmd_code] = {}
+        --         cmd_result_names[cmd_code] = {}
+        --         cmd_totals[cmd_code] = 0
+        --         cmd_display_names[cmd_code] = cmd_display
+        --         app_display_names[cmd_code] = {}
+        --     end
+        --     local app_key = app_display
+        --     if not cmd_result_counts[cmd_code][val] then
+        --         cmd_result_counts[cmd_code][val] = {}
+        --     end
+        --     cmd_result_counts[cmd_code][val][app_key] = (cmd_result_counts[cmd_code][val][app_key] or 0) + 1
+        --     cmd_result_names[cmd_code][val] = name
+        --     cmd_totals[cmd_code] = cmd_totals[cmd_code] + 1
+        --     cmd_display_names[cmd_code] = cmd_display
+        --     app_display_names[cmd_code][app_key] = app_display
+        -- end
 
         -- Per-command-code with CC-Request-Type and application id
         if cc and code_fi.value > 2001 then
@@ -215,40 +215,40 @@ local function generate_diam_stats()
             win:append(string.format("%-15s %-45s %-18s %-30s %-10d %-6.2f%%\n", row.code, row.name, row.ip, row.app_display, row.count, row.percent))
         end
 
-        -- Per-command-code and application id table, sorted globally by result code
-        win:append("\nError Codes Summary by Command Code and Application ID\n\n")
-        win:append(string.format("%-15s %-45s %-30s %-30s %-10s %-10s\n", "Result Code", "Result Name", "Cmd Code", "App ID", "Count", "Percent"))
-        win:append(string.rep("-", 140) .. "\n")
-        -- Collect all (code, cmd_code, app_id) pairs
-        local code_cmd_app_rows = {}
-        for cmd_code, code_table in pairs(cmd_result_counts) do
-            for code, app_table in pairs(code_table) do
-                for app_key, count in pairs(app_table) do
-                    table.insert(code_cmd_app_rows, {
-                        code_num = tonumber(code),
-                        code = code,
-                        name = cmd_result_names[cmd_code][code] or "",
-                        cmd_code = cmd_code,
-                        cmd_display = cmd_display_names[cmd_code] or cmd_code,
-                        app_display = app_display_names[cmd_code][app_key] or app_key,
-                        count = count,
-                        percent = (count / total) * 100
-                    })
-                end
-            end
-        end
-        -- Sort by code number, then by command code, then by application id
-        table.sort(code_cmd_app_rows, function(a, b)
-            if a.code_num == b.code_num then
-                        return a.count > b.count  -- Sort by count descending
+        -- -- Per-command-code and application id table, sorted globally by result code
+        -- win:append("\nError Codes Summary by Command Code and Application ID\n\n")
+        -- win:append(string.format("%-15s %-45s %-30s %-30s %-10s %-10s\n", "Result Code", "Result Name", "Cmd Code", "App ID", "Count", "Percent"))
+        -- win:append(string.rep("-", 140) .. "\n")
+        -- -- Collect all (code, cmd_code, app_id) pairs
+        -- local code_cmd_app_rows = {}
+        -- for cmd_code, code_table in pairs(cmd_result_counts) do
+        --     for code, app_table in pairs(code_table) do
+        --         for app_key, count in pairs(app_table) do
+        --             table.insert(code_cmd_app_rows, {
+        --                 code_num = tonumber(code),
+        --                 code = code,
+        --                 name = cmd_result_names[cmd_code][code] or "",
+        --                 cmd_code = cmd_code,
+        --                 cmd_display = cmd_display_names[cmd_code] or cmd_code,
+        --                 app_display = app_display_names[cmd_code][app_key] or app_key,
+        --                 count = count,
+        --                 percent = (count / total) * 100
+        --             })
+        --         end
+        --     end
+        -- end
+        -- -- Sort by code number, then by command code, then by application id
+        -- table.sort(code_cmd_app_rows, function(a, b)
+        --     if a.code_num == b.code_num then
+        --                 return a.count > b.count  -- Sort by count descending
 
-            else
-                return a.code_num < b.code_num
-            end
-        end)
-        for _, row in ipairs(code_cmd_app_rows) do
-            win:append(string.format("%-15s %-45s %-30s %-30s %-10d %-6.2f%%\n", row.code, row.name, row.cmd_display, row.app_display, row.count, row.percent))
-        end
+        --     else
+        --         return a.code_num < b.code_num
+        --     end
+        -- end)
+        -- for _, row in ipairs(code_cmd_app_rows) do
+        --     win:append(string.format("%-15s %-45s %-30s %-30s %-10d %-6.2f%%\n", row.code, row.name, row.cmd_display, row.app_display, row.count, row.percent))
+        -- end
 
         -- Per-command-code with CC-Request-Type and application id table, sorted globally by result code
         win:append("\nError Codes Summary by Command Code, CC-Request-Type and Application ID\n\n")
