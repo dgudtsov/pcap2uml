@@ -38,6 +38,7 @@ local result_code_field = Field.new("diameter.Result-Code")
 local exp_result_code_field = Field.new("diameter.Experimental-Result-Code")
 local cmd_code_field = Field.new("diameter.cmd.code")  
 local app_id_field = Field.new("diameter.applicationId") 
+local cc_request_type_field = Field.new("diameter.CC-Request-Type")
 
 local function generate_diam_stats()
 
@@ -63,6 +64,14 @@ local function generate_diam_stats()
     local cmd_display_names = {}  -- cmd_display_names[cmd_code] = display string
     local app_display_names = {}  -- app_display_names[cmd_code][app_id] = display string
 
+    -- For per-command-code with CC-Request-Type grouping
+    local cmd_cc_req_result_counts = {}  -- cmd_cc_req_result_counts[cmd_code][code][app_display] = count
+    local cmd_cc_req_result_names = {}   -- cmd_cc_req_result_names[cmd_code][code] = name
+    local cmd_cc_req_totals = {}        -- cmd_cc_req_totals[cmd_code] = total for that command code
+    local cmd_cc_req_display_names = {}  -- cmd_cc_req_display_names[cmd_code] = display string
+    local app_cc_req_display_names = {}  -- app_cc_req_display_names[cmd_code][app_id] = display string
+    local cc_req_type_display_names = {} -- cc_req_type_display_names[cmd_code][app_id] = display string
+
     function tap.packet(pinfo, tvb)
         -- Try both result code fields
         local rc = result_code_field()  -- FieldInfo or nil
@@ -73,6 +82,7 @@ local function generate_diam_stats()
         local name = tostring(code_fi.display)
         local cc = cmd_code_field and cmd_code_field() or nil
         local app = app_id_field and app_id_field() or nil
+        local cc_req_type = cc_request_type_field and cc_request_type_field() or nil
         result_counts[val] = (result_counts[val] or 0) + 1
         result_names[val] = name
         total = total + 1
@@ -119,6 +129,32 @@ local function generate_diam_stats()
             cmd_totals[cmd_code] = cmd_totals[cmd_code] + 1
             cmd_display_names[cmd_code] = cmd_display
             app_display_names[cmd_code][app_key] = app_display
+        end
+
+        -- Per-command-code with CC-Request-Type and application id
+        if cc and code_fi.value > 2001 then
+            local cmd_code = tostring(cc.value)
+            local cmd_display = tostring(cc.display)
+            local app_display = app and tostring(app.display) or ""
+            local cc_req_type_display = (cc_req_type and cc_req_type.display) and tostring(cc_req_type.display) or "-"
+            if not cmd_cc_req_result_counts[cmd_code] then
+                cmd_cc_req_result_counts[cmd_code] = {}
+                cmd_cc_req_result_names[cmd_code] = {}
+                cmd_cc_req_totals[cmd_code] = 0
+                cmd_cc_req_display_names[cmd_code] = cmd_display
+                app_cc_req_display_names[cmd_code] = {}
+                cc_req_type_display_names[cmd_code] = {}
+            end
+            local app_key = app_display
+            if not cmd_cc_req_result_counts[cmd_code][val] then
+                cmd_cc_req_result_counts[cmd_code][val] = {}
+            end
+            cmd_cc_req_result_counts[cmd_code][val][app_key] = (cmd_cc_req_result_counts[cmd_code][val][app_key] or 0) + 1
+            cmd_cc_req_result_names[cmd_code][val] = name
+            cmd_cc_req_totals[cmd_code] = cmd_cc_req_totals[cmd_code] + 1
+            cmd_cc_req_display_names[cmd_code] = cmd_display
+            app_cc_req_display_names[cmd_code][app_key] = app_display
+            cc_req_type_display_names[cmd_code][app_key] = cc_req_type_display
         end
     end
 
@@ -213,6 +249,42 @@ local function generate_diam_stats()
         for _, row in ipairs(code_cmd_app_rows) do
             win:append(string.format("%-15s %-45s %-30s %-30s %-10d %-6.2f%%\n", row.code, row.name, row.cmd_display, row.app_display, row.count, row.percent))
         end
+
+        -- Per-command-code with CC-Request-Type and application id table, sorted globally by result code
+        win:append("\nError Codes Summary by Command Code, CC-Request-Type and Application ID\n\n")
+        win:append(string.format("%-15s %-45s %-30s %-30s %-30s %-10s %-10s\n", "Result Code", "Result Name", "Cmd Code", "CC-Request-Type", "App ID", "Count", "Percent"))
+        win:append(string.rep("-", 173) .. "\n")
+        -- Collect all (code, cmd_code, cc_req_type, app_id) rows
+        local code_cmd_cc_req_app_rows = {}
+        for cmd_code, code_table in pairs(cmd_cc_req_result_counts) do
+            for code, app_table in pairs(code_table) do
+                for app_key, count in pairs(app_table) do
+                    table.insert(code_cmd_cc_req_app_rows, {
+                        code_num = tonumber(code),
+                        code = code,
+                        name = cmd_cc_req_result_names[cmd_code][code] or "",
+                        cmd_code = cmd_code,
+                        cmd_display = cmd_cc_req_display_names[cmd_code] or cmd_code,
+                        cc_req_type_display = cc_req_type_display_names[cmd_code][app_key] or "-",
+                        app_display = app_cc_req_display_names[cmd_code][app_key] or app_key,
+                        count = count,
+                        percent = (count / total) * 100
+                    })
+                end
+            end
+        end
+        -- Sort by code number, then by count descending
+        table.sort(code_cmd_cc_req_app_rows, function(a, b)
+            if a.code_num == b.code_num then
+                return a.count > b.count  -- Sort by count descending
+            else
+                return a.code_num < b.code_num
+            end
+        end)
+        for _, row in ipairs(code_cmd_cc_req_app_rows) do
+            win:append(string.format("%-15s %-45s %-30s %-30s %-30s %-10d %-6.2f%%\n", row.code, row.name, row.cmd_display, row.cc_req_type_display, row.app_display, row.count, row.percent))
+        end
+
         -- we tell the window to call the remove() function when closed
         win:set_atclose(remove)
     end
