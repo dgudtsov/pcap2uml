@@ -119,12 +119,17 @@ local function generate_diam_stats()
             if not cmd_cc_req_result_counts[cmd_code][val] then
                 cmd_cc_req_result_counts[cmd_code][val] = {}
             end
-            cmd_cc_req_result_counts[cmd_code][val][app_key] = (cmd_cc_req_result_counts[cmd_code][val][app_key] or 0) + 1
+            -- Create a unique key that combines command code and cc_req_type
+            local unique_key = cmd_code .. "|" .. cc_req_type_display
+            if not cmd_cc_req_result_counts[cmd_code][val][unique_key] then
+                cmd_cc_req_result_counts[cmd_code][val][unique_key] = 0
+            end
+            cmd_cc_req_result_counts[cmd_code][val][unique_key] = cmd_cc_req_result_counts[cmd_code][val][unique_key] + 1
             cmd_cc_req_result_names[cmd_code][val] = name
             cmd_cc_req_totals[cmd_code] = cmd_cc_req_totals[cmd_code] + 1
             cmd_cc_req_display_names[cmd_code] = cmd_display
-            app_cc_req_display_names[cmd_code][app_key] = app_display
-            cc_req_type_display_names[cmd_code][app_key] = cc_req_type_display
+            app_cc_req_display_names[cmd_code][unique_key] = app_display
+            cc_req_type_display_names[cmd_code][unique_key] = cc_req_type_display
         end
     end
 
@@ -195,16 +200,16 @@ local function generate_diam_stats()
         -- Collect all (code, cmd_code, cc_req_type, app_id) rows
         local code_cmd_cc_req_app_rows = {}
         for cmd_code, code_table in pairs(cmd_cc_req_result_counts) do
-            for code, app_table in pairs(code_table) do
-                for app_key, count in pairs(app_table) do
+            for code, unique_key_table in pairs(code_table) do
+                for unique_key, count in pairs(unique_key_table) do
                     table.insert(code_cmd_cc_req_app_rows, {
                         code_num = tonumber(code),
                         code = code,
                         name = cmd_cc_req_result_names[cmd_code][code] or "",
                         cmd_code = cmd_code,
                         cmd_display = cmd_cc_req_display_names[cmd_code] or cmd_code,
-                        cc_req_type_display = cc_req_type_display_names[cmd_code][app_key] or "-",
-                        app_display = app_cc_req_display_names[cmd_code][app_key] or app_key,
+                        cc_req_type_display = cc_req_type_display_names[cmd_code][unique_key] or "-",
+                        app_display = app_cc_req_display_names[cmd_code][unique_key] or "",
                         count = count,
                         percent = (count / total) * 100
                     })
