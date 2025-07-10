@@ -201,7 +201,8 @@ proto_formatter = {
 {charging_rule_base_name} \\n {charging_rule_name} \\n {af_signalling_protocol} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {guaranteed_bitrate_dl} \\n {guaranteed_bitrate_ul} \\n \
-{apn_aggregate_max_bitrate_dl} \\n {apn_aggregate_max_bitrate_ul} \n\n",
+{apn_aggregate_max_bitrate_dl} \\n {apn_aggregate_max_bitrate_ul} \\n \
+{session_release_cause} \n\n",
         
         #"Command Code: Abort-Session (
         "274": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {abort_cause} \n\n",
@@ -283,7 +284,8 @@ headers = {
             'rx_request_type','af_application_identifier',
             'qos_information','rs_bandwidth','rr_bandwidth',
             'framed_ip_address_ipv4',
-            'called_station_id'
+            'called_station_id',
+            'session_release_cause'
         ],
         "short": ['flags_request'],
         # double will do the following:
