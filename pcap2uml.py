@@ -155,7 +155,7 @@ class Message(object):
                     self.msg_params[header] = value.showname
                 elif len(value.fields)>1:
                     #list generator
-                    self.msg_params[header]={'Event-Trigger':[p.showname_value for p in value.fields]}                    
+                    self.msg_params[header]={value.showname_key:[p.showname_value for p in value.fields]}                    
 
 # Specific class for GTP messages
 class Message_GTP(Message):
