@@ -168,7 +168,7 @@ proto_formatter = {
     "diameter": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
         
-        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} \\n {charging_rule_base_name} \\n \
+        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n {event_trigger} \\n {charging_rule_base_name} \\n \
 {charging_rule_name} \\n {qos_class_identifier} \\n \
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
 {apn_aggregate_max_bitrate_dl} {apn_aggregate_max_bitrate_ul} \\n \
@@ -182,7 +182,7 @@ proto_formatter = {
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {cc_request_type} \\n {event_trigger} \\n \
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n {event_trigger} \\n \
 {charging_rule_name} \\n \
 {pcc_rule_status} \\n \
 {rule_failure_code} \\n \
@@ -296,10 +296,12 @@ headers = {
                   'max_requested_bandwidth_dl','max_requested_bandwidth_ul',
                   'guaranteed_bitrate_dl','guaranteed_bitrate_ul',
                   'flow_usage','media_type',
-                  'event_trigger',
                   'rule_failure_code',
                   'pcc_rule_status'                  
-                  ]
+                  ],
+        "multiline": [
+                  'event_trigger'
+            ]
     },
     "http": {
         "short": [

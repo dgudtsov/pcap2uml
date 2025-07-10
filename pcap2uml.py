@@ -149,6 +149,13 @@ class Message(object):
                 elif len(value.fields)>1:
                     #list generator
                     self.msg_params[header]=[p.showname for p in value.fields]
+            elif header_type == "multiline":
+                if len(value.fields)==1:
+                    # single value
+                    self.msg_params[header] = value.showname
+                elif len(value.fields)>1:
+                    #list generator
+                    self.msg_params[header]={'Event-Trigger':[p.showname_value for p in value.fields]}                    
 
 # Specific class for GTP messages
 class Message_GTP(Message):
@@ -346,14 +353,12 @@ class UML(object):
         with open(filename, 'w', encoding='utf-8') as uml_file:
             uml_file.write(self.uml)
 
-def process_cap(cap_file, cap_filter, uml_file):
+def process_cap(cap_file, cap_filter, uml_file, diam_filter):
     try:
         cap = pyshark.FileCapture(input_file=cap_file, display_filter=cap_filter,keep_packets=False)
     except Exception as e:
         sys.stderr.write(f"Error opening pcap file: {str(e)} \n")
         return 2
-
-    print(program_version_string)
     
     uml_legend = uml_comment_template.format(
         datetime=datetime.now(),
@@ -450,38 +455,42 @@ def process_cap(cap_file, cap_filter, uml_file):
                     DIAM.frame_num = frame.number
                     if not DIAM.skip():
                         
-                        if hasattr(frame, 'ip'):
-                            src = frame.ip.src
-                            dst = frame.ip.dst
-                        elif hasattr(frame, 'ipv6'):
-                            src = f"\"{frame.ipv6.src}\""
-                            dst = f"\"{frame.ipv6.dst}\""
-                        else:
-                            print("malformed frame #",SIP.frame_num)
-                            continue
-
+                        # applying 2nd pass filter. considering all diam messages has session id attribute
+                        if len(diam_filter)==0 or layer.session_id.lower() in diam_filter:
                             
-                        
-                        DIAM.add_param("src", Participant(src).name)
-                        DIAM.add_param("dst", Participant(dst).name)
-                        
-                        #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
-                        DIAM.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
-                        
-                        #default
-                        line_style=uml_line_style[layer.layer_name]
-                        
-                        # try to colorize different apps
-                        try:
-                            line_style=styles_appsid[DIAM.msg_params["__applicationid__"]]
-                        except KeyError as e:
-                            print(f"'styles_appsid' list has no definition for app id {DIAM.msg_params['applicationid']}")
-                        
-                        if DIAM.flags_request == '1':
-                            uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name])
+                            if hasattr(frame, 'ip'):
+                                src = frame.ip.src
+                                dst = frame.ip.dst
+                            elif hasattr(frame, 'ipv6'):
+                                src = f"\"{frame.ipv6.src}\""
+                                dst = f"\"{frame.ipv6.dst}\""
+                            else:
+                                print("malformed frame #",SIP.frame_num)
+                                continue
+    
+                                
+                            
+                            DIAM.add_param("src", Participant(src).name)
+                            DIAM.add_param("dst", Participant(dst).name)
+                            
+                            #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
+                            DIAM.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
+                            
+                            #default
+                            line_style=uml_line_style[layer.layer_name]
+                            
+                            # try to colorize different apps
+                            try:
+                                line_style=styles_appsid[DIAM.msg_params["__applicationid__"]]
+                            except KeyError as e:
+                                print(f"'styles_appsid' list has no definition for app id {DIAM.msg_params['applicationid']}")
+                            
+                            if DIAM.flags_request == '1':
+                                uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name])
+                            else:
+                                uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name], "response")
                         else:
-                            uml.draw(DIAM, line_style, uml_msg_color[layer.layer_name], "response")
-                        
+                            print(f"Skipping frame #{DIAM.frame_num}, {DIAM.session_id}")
 
         elif 'sccp' in frame:
             for layer in frame.layers:
@@ -571,6 +580,9 @@ def main(argv=None):
     program_version_string = f'{program_name} {program_version} ({program_build_date})'
     
     program_license = "Copyright (c) 2016-2025 Denis Gudtsov. Licensed under Apache 2.0 License"
+    
+    print(program_version_string)
+
 
     if argv is None:
         argv = sys.argv[1:]
@@ -583,6 +595,7 @@ def main(argv=None):
         parser.add_option("-y", "--filter", dest="cap_filter", help="Pcap filter")
         parser.add_option("-v", "--verbose", dest="verbose", action="count", help="Verbosity level")
         parser.add_option("-p", "--process", dest="process", action="count", help="add process duration on each participant")
+        parser.add_option("-d", "--diam", dest="diam", action="count", help="cut diam sessions")
 
         parser.set_defaults(uml_file=default_uml_file, cap_filter=defaul_cap_filter)
         opts, args = parser.parse_args(argv)
@@ -603,7 +616,16 @@ def main(argv=None):
         print("process duration on")
         process_duration=1
     
-    process_cap(opts.cap_file, opts.cap_filter, opts.uml_file)
+    d=[]
+    if opts.diam:
+        if 'diameter.Session-Id'.lower() in opts.cap_filter.lower():
+            d = re.findall(r'diameter\.session-id\s*==\s*"([^"]*)"', opts.cap_filter.lower())
+            print("diam sessions filter:")
+            print('\n'.join(d))
+        else:
+            print("-d/--diam option is enabled, but nothing 'diameter.Session-Id' found in -t/--filter option. Ignoring '-d/--diam'")
+    
+    process_cap(opts.cap_file, opts.cap_filter, opts.uml_file,d)
 
     if opts.render_format is not None:
         for format in opts.render_format:

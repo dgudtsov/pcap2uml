@@ -39,6 +39,8 @@ Plantuml: http://plantuml.com/download
 
 * Added S13 interface, chnaged participants parsing behaviour: now list of csv files is used. Look at [readme](conf/participants/readme.txt)
 
+* Added '-d/--diam' option. It is usefull in conjunction with '-y' filter option for cases when single frame contains more than one diameter packets. In such case wireshark doesn't apply properly diameter.Session-Id filter. Thus, session_id filter which mentioned in '-y' option will be applied in application level at second pass to filter out junk sessions messages which are not relevant to session beening selected.
+
 # Configure
 
 edit conf/conf_uml.py file:  
