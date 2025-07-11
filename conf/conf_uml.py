@@ -27,9 +27,9 @@ skinparam backgroundColor #EEEEEE
 participant UE
 participant "UE-A" as 1.2.3.6
 participant "UE-B" as 1.2.3.7
-participant "UAG \\n 10.2.23.159" as UAG
+participant "UAG \\n 10.0.0.1" as UAG
 participant "CSCF" as CSCF
-participant "TAS \\n 10.2.23.134 \\n 70772039000" as TAS
+participant "TAS \\n 10.0.0.3 \\n 70772039000" as TAS
 participant "DRA" as DRA
 
 participant eNB_1
@@ -60,9 +60,9 @@ participant PCSCF3
 participant "AGW \\n 10.2.23.143" as AGW
 participant "RMS" as RMS
 participant "MRF \\n 10.2.23.154" as MRF
-participant "MGCF/MSC \\n 10.68.19.1 \\n 79772539001" as MGCF
-participant "OCS \\n 79000490014" as OCS
-participant "BL \\n 79000490114" as BL
+participant "MGCF/MSC \\n 10.68.19.1 \\n 79770000001" as MGCF
+participant "OCS \\n 79000000012" as OCS
+participant "BL \\n 79000000123" as BL
 participant "HLR" as HLR
 
 autonumber "<b>[000]"
@@ -168,10 +168,11 @@ proto_formatter = {
     "diameter": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
         
-        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n {event_trigger} \\n {charging_rule_base_name} \\n \
-{charging_rule_name} \\n {qos_class_identifier} \\n \
-{max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
-{apn_aggregate_max_bitrate_dl} {apn_aggregate_max_bitrate_ul} \\n \
+        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n{event_trigger}\\n {charging_rule_base_name} \\n\
+{charging_rule_name} \\n{qos_class_identifier}\\n\
+{max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
+{apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
+{revalidation_time}\\n\
 {result_code} \\n {experimental_result_code} \n\n",
         
         #Sh
@@ -182,27 +183,28 @@ proto_formatter = {
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n {event_trigger} \\n \
-{charging_rule_name} \\n \
-{pcc_rule_status} \\n \
-{rule_failure_code} \\n \
-{ip_can_type} {rat_type} \\n {network_request_support} \\n  {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n {event_trigger} \\n\
+{charging_rule_name}\\n\
+{pcc_rule_status}\\n\
+{rule_failure_code}\\n\
+{ip_can_type} {rat_type} \\n {network_request_support} \\n {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
         
         #Rx
         #"Command Code: AA (
-        "265": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n \
-{af_signalling_protocol} \\n {service_info_status} \\n {specific_action} \\n {flow_usage} \\n {media_type} \\n \
-{max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
-{rs_bandwidth} {rr_bandwidth} \\n \
+        "265": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n\
+{af_signalling_protocol} \\n {service_info_status} \\n {specific_action} \\n {flow_usage} \\n {media_type} \\n\
+{max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n\
+{rs_bandwidth} {rr_bandwidth} \\n\
 {framed_ip_address_ipv4} \n \n",
         
         #"Command Code: Re-Auth (
-        "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {specific_action} \\n {qos_class_identifier} \\n \
-{charging_rule_base_name} \\n {charging_rule_name} \\n {af_signalling_protocol} \\n \
-{max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n \
-{guaranteed_bitrate_dl} \\n {guaranteed_bitrate_ul} \\n \
-{apn_aggregate_max_bitrate_dl} \\n {apn_aggregate_max_bitrate_ul} \\n \
-{session_release_cause} \n\n",
+        "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {specific_action} \\n \
+{charging_rule_base_name}\\n{charging_rule_name}\\n{af_signalling_protocol}\\n\
+{qos_class_identifier}\\n\
+{max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
+{guaranteed_bitrate_dl}\\n{guaranteed_bitrate_ul}\\n\
+{apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
+{session_release_cause} \n \n",
         
         #"Command Code: Abort-Session (
         "274": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {abort_cause} \n\n",
@@ -285,7 +287,8 @@ headers = {
             'qos_information','rs_bandwidth','rr_bandwidth',
             'framed_ip_address_ipv4',
             'called_station_id',
-            'session_release_cause'
+            'session_release_cause',
+            'revalidation_time'
         ],
         "short": ['flags_request'],
         # double will do the following:

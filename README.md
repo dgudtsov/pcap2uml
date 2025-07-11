@@ -52,7 +52,7 @@ edit conf/conf_uml.py file:
 # Usage
 
 run:  
-./pcap2uml.py -i input.pcap -o out.uml -y filter -t format
+./pcap2uml.py -i input.pcap -o out.uml -y filter -d -t format
 
 where:  
 input.pcap - source pcap (mandatory)  
@@ -75,10 +75,12 @@ Thus you will get uml output plus png, jpg and svg are generated
 
 ## Usage notice
 
-If you didn't define all parties in 'participants' dict in conf/conf_uml.py file, then program will dump list of undefined participants for you. You can copy that list and paste it into configuration file and then fill it values with appropriate names.
+If you didn't define all parties in 'participants' dict in conf/conf_uml.py file OR in CSV files under conf/participants, then program will dump list of undefined participants for you. You can copy that list and paste it into configuration file and then fill it values with appropriate names.
 
 Please note about filter syntax. It should be escaped and do not contains whitespaces, e.g.:
 sip.Call-ID==\"0feX8451416300Q3beGhEfIgAke@SIP\"\\|\\|sip.Call-ID==\"0050569E78EF-554c-acc81700-becf6-588f3c46-495a\"
+
+It is recommended to use '-d' option together with '-y'. This will give you exact match by diameter session-id in cases when more than one message exist in single frame. 
 
 # Advanced usage
 

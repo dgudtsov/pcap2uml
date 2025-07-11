@@ -148,14 +148,16 @@ class Message(object):
                     self.msg_params[header] = value.showname
                 elif len(value.fields)>1:
                     #list generator
-                    self.msg_params[header]=[p.showname for p in value.fields]
+#                    self.msg_params[header]=[p.showname for p in value.fields]
+                    self.msg_params[header]="| "+' | '.join([p.showname for p in value.fields])+" |"  
             elif header_type == "multiline":
                 if len(value.fields)==1:
                     # single value
                     self.msg_params[header] = value.showname
                 elif len(value.fields)>1:
                     #list generator
-                    self.msg_params[header]={value.showname_key:[p.showname_value for p in value.fields]}                    
+#                    self.msg_params[header]={value.showname_key:[p.showname_value for p in value.fields]}
+                    self.msg_params[header]=f"|{value.showname_key} |"+' | '.join([p.showname_value for p in value.fields])+"|"                    
 
 # Specific class for GTP messages
 class Message_GTP(Message):
@@ -615,7 +617,7 @@ def main(argv=None):
     if opts.process:
         print("process duration on")
         process_duration=1
-    
+    # TODO: add sip.Call-ID filter as well, add radius Acct-Session-Id
     d=[]
     if opts.diam:
         if 'diameter.Session-Id'.lower() in opts.cap_filter.lower():
