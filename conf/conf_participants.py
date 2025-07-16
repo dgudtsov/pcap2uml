@@ -12,17 +12,22 @@ import os
 
 #participants_list="conf/participants.csv"
 
-participants_dir="conf/participants"
+participants_dir="/participants"
 participants_suffix='.csv'
+
+conf_path=os.path.dirname(os.path.realpath(__file__))
 
 participants = dict()
 
-for path, directories, files in os.walk(participants_dir):
+print("Config location: ",conf_path)
+print("Loading participants from:",conf_path+participants_dir)
+
+for path, directories, files in os.walk(conf_path+participants_dir):
     files.sort()
     for inp in files:
         if inp.lower().endswith(participants_suffix):
             print("loading participants: "+inp)
-            with open(participants_dir+"/"+inp, newline='') as csvfile:
+            with open(conf_path+participants_dir+"/"+inp, newline='') as csvfile:
                 reader = csv.DictReader(csvfile,['IP','NAME'])
                 for row in reader:
                     if row['IP'] is not None and row['NAME'] is not None:

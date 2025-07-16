@@ -204,6 +204,7 @@ proto_formatter = {
 {max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
 {guaranteed_bitrate_dl}\\n{guaranteed_bitrate_ul}\\n\
 {apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
+{revalidation_time}\\n\
 {session_release_cause} \n \n",
         
         #"Command Code: Abort-Session (
