@@ -93,6 +93,8 @@ uml_delay = "\n... {seconds} seconds later...\n"
 uml_process_duration_activate='activate {participant}'
 uml_process_duration_deactivate='deactivate {participant}'
 
+uml_tables_enabled=1
+
 # seconds to report period
 time_period=3
 
@@ -183,7 +185,7 @@ proto_formatter = {
                 
         #Gx
         #"Command Code: Credit-Control (
-        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n {event_trigger} \\n\
+        "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n{event_trigger}\\n\
 {charging_rule_name}\\n\
 {pcc_rule_status}\\n\
 {rule_failure_code}\\n\
@@ -192,17 +194,22 @@ proto_formatter = {
         #Rx
         #"Command Code: AA (
         "265": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rx_request_type} \\n {af_application_identifier} \\n\
-{af_signalling_protocol} \\n {service_info_status} \\n {specific_action} \\n {flow_usage} \\n {media_type} \\n\
+{af_signalling_protocol} \\n {service_info_status} \\n{specific_action}\\n {flow_usage} \\n {media_type} \\n\
+{flow_number}\\n\
 {max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul} \\n\
 {rs_bandwidth} {rr_bandwidth} \\n\
+{flow_status}\\n\
 {framed_ip_address_ipv4} \n \n",
         
         #"Command Code: Re-Auth (
-        "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {specific_action} \\n \
+        "258": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n{specific_action}\\n \
 {charging_rule_base_name}\\n{charging_rule_name}\\n{af_signalling_protocol}\\n\
 {qos_class_identifier}\\n\
 {max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
 {guaranteed_bitrate_dl}\\n{guaranteed_bitrate_ul}\\n\
+{media_component_number}\\n\
+{flow_number}\\n\
+{resource_allocation_notification}\\n\
 {apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
 {revalidation_time}\\n\
 {session_release_cause} \n \n",
@@ -280,7 +287,7 @@ headers = {
             'user_authorization_type','session_id',
             'experimental_result_code', 'result_code', 'data_reference',
             'subs_req_type', 'send_data_indication', '3gpp_service_ind',
-            'service_info_status', 'specific_action', 'abort_cause', 'termination_cause',
+            'service_info_status', 'abort_cause', 'termination_cause',
             'cc_request_type','ip_can_type','bearer_usage','rat_type',
             'network_request_support',
             'af_signalling_protocol',
@@ -289,7 +296,8 @@ headers = {
             'framed_ip_address_ipv4',
             'called_station_id',
             'session_release_cause',
-            'revalidation_time'
+            'revalidation_time',
+            'flow_status'
         ],
         "short": ['flags_request'],
         # double will do the following:
@@ -303,10 +311,13 @@ headers = {
                   'guaranteed_bitrate_dl','guaranteed_bitrate_ul',
                   'flow_usage','media_type',
                   'rule_failure_code',
-                  'pcc_rule_status'                  
+                  'pcc_rule_status',
+                  'flow_number',
+                  'media_component_number',
+                  'resource_allocation_notification'                  
                   ],
         "multiline": [
-                  'event_trigger'
+                  'event_trigger','specific_action'
             ]
     },
     "http": {

@@ -148,16 +148,23 @@ class Message(object):
                     self.msg_params[header] = value.showname
                 elif len(value.fields)>1:
                     #list generator
-#                    self.msg_params[header]=[p.showname for p in value.fields]
-                    self.msg_params[header]="| "+' | '.join([p.showname for p in value.fields])+" |"  
+                    if uml_tables_enabled:
+                        self.msg_params[header]="| "+' | '.join([p.showname for p in value.fields])+" |"
+                    else:
+                        self.msg_params[header]=[p.showname for p in value.fields]
+                                              
             elif header_type == "multiline":
                 if len(value.fields)==1:
                     # single value
                     self.msg_params[header] = value.showname
                 elif len(value.fields)>1:
                     #list generator
-#                    self.msg_params[header]={value.showname_key:[p.showname_value for p in value.fields]}
-                    self.msg_params[header]=f"|{value.showname_key} |"+' | '.join([p.showname_value for p in value.fields])+"|"                    
+
+#                    self.msg_params[header]=f"|{value.showname_key} |"+' | '.join([p.showname_value for p in value.fields])+"|"
+                    if uml_tables_enabled:
+                        self.msg_params[header]='\\n'.join(f"|{value.showname_key} | {p.showname_value} |" for p in value.fields)
+                    else:
+                        self.msg_params[header]={value.showname_key:[p.showname_value for p in value.fields]}                                            
 
 # Specific class for GTP messages
 class Message_GTP(Message):
