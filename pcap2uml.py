@@ -190,6 +190,11 @@ class Message_SCCP(Message):
     def __init__(self, layer):
         super().__init__(layer)    
 
+# Specific class for RADIUS messages
+class Message_RADIUS(Message):
+    def __init__(self, layer):
+        super().__init__(layer)    
+
 # Specific class for Diameter messages
 class Message_Diam(Message):
     def skip(self):
@@ -564,6 +569,19 @@ def process_cap(cap_file, cap_filter, uml_file, diam_filter):
                     PFCP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
                     
                     uml.draw(PFCP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
+        
+        elif 'radius' in frame:
+            for layer in frame.layers:
+                if layer.layer_name == 'radius':
+                    RADIUS = Message_RADIUS(layer)
+                    RADIUS.frame_num = frame.number
+                    RADIUS.add_param("src", Participant(frame.ip.src).name)
+                    RADIUS.add_param("dst", Participant(frame.ip.dst).name)
+                        
+                        #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
+                    RADIUS.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
+                    
+                    uml.draw(RADIUS, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
                     
     uml.finalize(uml_legend)
     uml.dump_to_file(uml_file)

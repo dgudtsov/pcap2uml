@@ -137,7 +137,8 @@ uml_msg_color = {
     "http": "green",
     "gtpv2":"red",
     "s1ap":"red",
-    "pfcp":"red"
+    "pfcp":"red",
+    "radius":"blue"
 }
 
 uml_line_style = {
@@ -147,7 +148,8 @@ uml_line_style = {
     "http": "-[#green]>>",
     "gtpv2":"-[#red]>>",
     "s1ap":"-[#red]>>",
-    "pfcp":"-[#red]>>"
+    "pfcp":"-[#red]>>",
+    "radius":"-[#red]>>"
 }
 
 # UML Draw templates
@@ -248,7 +250,10 @@ proto_formatter = {
     },
    "pfcp": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
-   }
+   },
+   "radius": {
+       "request":  "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> RADIUS {code} \\n{acct_status_type} \\n{acct_terminate_cause} \\n{acct_session_id} \\n{framed_ip_address} \\n{3gpp_rat_type} \\n{called_station_id} \n \n"
+       }
 }
 
 uml_draw_keys = ['local', 'gsm_old_localValue', 'method', '__cmd_code__', 'request_method','__message_type__','__msg_type__']
@@ -360,7 +365,18 @@ headers = {
     },
    "pfcp" : {"double":["msg_type"],
             "long":["seid","cause","seqno"]
-             }
+             },
+   "radius":{
+       "long":[
+           "code",
+           "framed_ip_address",
+           "acct_status_type","acct_terminate_cause",
+           "acct_session_id",
+           "3gpp_rat_type",
+           "called_station_id"
+           ]
+       
+       }
 }
 
 header_params = {
