@@ -170,10 +170,14 @@ proto_formatter = {
     "diameter": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
         
-        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n{event_trigger}\\n {charging_rule_base_name} \\n\
-{charging_rule_name} \\n{qos_class_identifier}\\n\
+        "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n{event_trigger}\\n{charging_rule_base_name}\\n\
+{charging_rule_name}\\n{qos_class_identifier}\\n\
+{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n\
+{monitoring_key}\\n\
+{usage_monitoring_level}\\n\
 {max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
 {apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
+{bearer_control_mode}\\n\
 {revalidation_time}\\n\
 {result_code} \\n {experimental_result_code} \n\n",
         
@@ -188,7 +192,11 @@ proto_formatter = {
         "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n{event_trigger}\\n\
 {charging_rule_name}\\n\
 {pcc_rule_status}\\n\
+{apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
 {rule_failure_code}\\n\
+{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n\
+{monitoring_key}\\n\
+{usage_monitoring_level}\\n\
 {ip_can_type} {rat_type} \\n {network_request_support} \\n {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
         
         #Rx
@@ -211,6 +219,9 @@ proto_formatter = {
 {flow_number}\\n\
 {resource_allocation_notification}\\n\
 {apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
+{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n\
+{monitoring_key}\\n\
+{usage_monitoring_level}\\n\
 {revalidation_time}\\n\
 {session_release_cause} \n \n",
         
@@ -297,7 +308,8 @@ headers = {
             'called_station_id',
             'session_release_cause',
             'revalidation_time',
-            'flow_status'
+            'flow_status',
+            'bearer_control_mode'
         ],
         "short": ['flags_request'],
         # double will do the following:
@@ -314,7 +326,10 @@ headers = {
                   'pcc_rule_status',
                   'flow_number',
                   'media_component_number',
-                  'resource_allocation_notification'                  
+                  'resource_allocation_notification',
+                  'monitoring_key',
+                  'cc_total_octets','cc_input_octets','cc_output_octets',
+                  'usage_monitoring_level'                  
                   ],
         "multiline": [
                   'event_trigger','specific_action'
