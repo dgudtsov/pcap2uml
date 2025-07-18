@@ -121,6 +121,8 @@ styles_appsid = {
     "16777238":'-[#blue]/',
     #ApplicationId: 3GPP Rx (16777236)
     "16777236":'-[#red]/',
+    #ApplicationId: Diameter Credit Control Application (4)
+    "4":'-[#magenta]/',
     #ApplicationId: 3GPP S6a/S6d (16777251)
     "16777251":'-[#green]/',
     #ApplicationId: 3GPP S13/S13' (16777252)
@@ -172,7 +174,8 @@ proto_formatter = {
         
         "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n{event_trigger}\\n{charging_rule_base_name}\\n\
 {charging_rule_name}\\n{qos_class_identifier}\\n\
-{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n\
+{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n{cc_service_specific_units}\\n{cc_time}\\n\
+{rating_group}\\n\
 {monitoring_key}\\n\
 {usage_monitoring_level}\\n\
 {max_requested_bandwidth_dl}\\n{max_requested_bandwidth_ul}\\n\
@@ -190,11 +193,14 @@ proto_formatter = {
         #Gx
         #"Command Code: Credit-Control (
         "272": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code}, {cc_request_type} \\n {session_id} \\n{event_trigger}\\n\
+{termination_cause}\\n\
+{3gpp_charging_characteristics}\\n\
 {charging_rule_name}\\n\
 {pcc_rule_status}\\n\
 {apn_aggregate_max_bitrate_dl}\\n{apn_aggregate_max_bitrate_ul}\\n\
 {rule_failure_code}\\n\
-{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n\
+{cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n{cc_service_specific_units}\\n{cc_time}\\n\
+{rating_group}\\n\
 {monitoring_key}\\n\
 {usage_monitoring_level}\\n\
 {ip_can_type} {rat_type} \\n {network_request_support} \\n {qos_class_identifier} \\n {bearer_usage} \\n {framed_ip_address_ipv4} \\n {called_station_id} \n\n",
@@ -309,7 +315,8 @@ headers = {
             'session_release_cause',
             'revalidation_time',
             'flow_status',
-            'bearer_control_mode'
+            'bearer_control_mode',
+            '3gpp_charging_characteristics'
         ],
         "short": ['flags_request'],
         # double will do the following:
@@ -328,8 +335,9 @@ headers = {
                   'media_component_number',
                   'resource_allocation_notification',
                   'monitoring_key',
-                  'cc_total_octets','cc_input_octets','cc_output_octets',
-                  'usage_monitoring_level'                  
+                  'cc_total_octets','cc_input_octets','cc_output_octets','cc_service_specific_units','cc_time',
+                  'usage_monitoring_level',
+                  'rating_group'                  
                   ],
         "multiline": [
                   'event_trigger','specific_action'

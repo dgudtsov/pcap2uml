@@ -468,8 +468,11 @@ def process_cap(cap_file, cap_filter, uml_file, diam_filter):
                         if len(diam_filter)==0 or layer.session_id.lower() in diam_filter:
                             
                             if hasattr(frame, 'ip'):
-                                src = frame.ip.src
-                                dst = frame.ip.dst
+                                # iterate over all ip layers
+                                for l in frame.layers:
+                                    if l.layer_name=='ip':
+                                        src = l.src
+                                        dst = l.dst
                             elif hasattr(frame, 'ipv6'):
                                 src = f"\"{frame.ipv6.src}\""
                                 dst = f"\"{frame.ipv6.dst}\""
