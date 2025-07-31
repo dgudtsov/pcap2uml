@@ -195,6 +195,12 @@ class Message_RADIUS(Message):
     def __init__(self, layer):
         super().__init__(layer)    
 
+# Specific class for SGSAP messages
+class Message_SGSAP(Message):
+    def __init__(self, layer):
+        super().__init__(layer)    
+
+
 # Specific class for Diameter messages
 class Message_Diam(Message):
     def skip(self):
@@ -479,8 +485,8 @@ def process_cap(cap_file, cap_filter, uml_file, diam_filter):
                                         src = l.src
                                         dst = l.dst
                             elif hasattr(frame, 'ipv6'):
-                                src = f"\"{frame.ipv6.src}\""
-                                dst = f"\"{frame.ipv6.dst}\""
+                                src = f"{frame.ipv6.src}"
+                                dst = f"{frame.ipv6.dst}"
                             else:
                                 print("malformed frame #",SIP.frame_num)
                                 continue
@@ -582,6 +588,19 @@ def process_cap(cap_file, cap_filter, uml_file, diam_filter):
                     RADIUS.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
                     
                     uml.draw(RADIUS, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])
+        elif 'sgsap' in frame:
+            for layer in frame.layers:
+                if layer.layer_name == 'sgsap':
+                    SGSAP = Message_SGSAP(layer)
+                    SGSAP.frame_num = frame.number
+                    
+                    SGSAP.add_param("src", Participant(frame.ip.src).name)
+                    SGSAP.add_param("dst", Participant(frame.ip.dst).name)
+                        
+                        #sniff_timestamp attr is used to draw uml.delay() in case of time difference between frames exceed timeframe_timeout
+                    SGSAP.sniff_timestamp = datetime.utcfromtimestamp(float(frame.sniff_timestamp))
+                    
+                    uml.draw(SGSAP, uml_line_style[layer.layer_name], uml_msg_color[layer.layer_name])       
                     
     uml.finalize(uml_legend)
     uml.dump_to_file(uml_file)

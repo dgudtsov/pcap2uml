@@ -22,6 +22,7 @@ uml_intro = """
 '/
 hide unlinked
 skinparam backgroundColor #EEEEEE
+!theme vibrant
 
 
 participant UE
@@ -42,7 +43,7 @@ participant MME_1
 participant MME_2
 participant SPGWC
 participant SPGWU
-participant HSS
+
 
 participant PGW
 participant PGW1
@@ -50,12 +51,17 @@ participant PGW2
 participant PGW3
 participant PGW4
 
+participant xGWC_2
+participant xGWC_1
+participant xGWU_PLB_1
+participant xGWU_PLB_2
+
 participant PCRF
 
 participant PCSCF1
 participant PCSCF2
 participant PCSCF3
-
+participant HSS
 
 participant "AGW \\n 10.2.23.143" as AGW
 participant "RMS" as RMS
@@ -100,7 +106,7 @@ time_period=3
 
 # seconds between timeframes when exceeded uml.delay() method is invoked 
 timeframe_timeout = 2
-defaul_cap_filter = "sip||sccp||diameter||http||gtpv2||s1ap||pfcp"
+defaul_cap_filter = "sip||sccp||diameter||http||gtpv2||s1ap||pfcp||sgsap"
 default_uml_file = "./out.uml"
 
 # plantuml output
@@ -138,7 +144,8 @@ uml_msg_color = {
     "gtpv2":"red",
     "s1ap":"red",
     "pfcp":"red",
-    "radius":"blue"
+    "radius":"blue",
+    "sgsap":"magenta"
 }
 
 uml_line_style = {
@@ -149,7 +156,8 @@ uml_line_style = {
     "gtpv2":"-[#red]>>",
     "s1ap":"-[#red]>>",
     "pfcp":"-[#red]>>",
-    "radius":"-[#red]>>"
+    "radius":"-[#red]>>",
+    "sgsap":"-[#magenta]>>",
 }
 
 # UML Draw templates
@@ -172,10 +180,11 @@ proto_formatter = {
         "short": "{src} {line} {dst} : {frame_num} <color {color}> {method} {status_line} \n\n"
     },
     "diameter": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \n\n",
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {session_id} \\n {rat_type} \n\n",
         
         "response": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} {cc_request_type} \\n{event_trigger}\\n{charging_rule_base_name}\\n\
 {charging_rule_name}\\n{qos_class_identifier}\\n\
+{service_selection}\\n\
 {cc_total_octets}\\n{cc_input_octets}\\n{cc_output_octets}\\n{cc_service_specific_units}\\n{cc_time}\\n\
 {rating_group}\\n\
 {monitoring_key}\\n\
@@ -246,13 +255,16 @@ proto_formatter = {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {message_type} \\n {seq} \\n {teid} \\n {cause} \n\n"
     },
     "s1ap": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {procedurecode} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {procedurecode} \\n {nas_eps_nas_msg_emm_type} \\n {nas_eps_nas_msg_esm_type} \n\n"
     },
    "pfcp": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
    },
    "radius": {
        "request":  "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> RADIUS {code} \\n{acct_status_type} \\n{acct_terminate_cause} \\n{acct_session_id} \\n{framed_ip_address} \\n{3gpp_rat_type} \\n{called_station_id} \n \n"
+    },
+   "sgsap":{
+       "request":  "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {eps_location_update_type} \n\n"
        }
 }
 
@@ -342,7 +354,8 @@ headers = {
                   'monitoring_key',
                   'cc_total_octets','cc_input_octets','cc_output_octets','cc_service_specific_units','cc_time',
                   'usage_monitoring_level',
-                  'rating_group'                  
+                  'rating_group',
+                  'service_selection','context_identifier'                  
                   ],
         "multiline": [
                   'event_trigger','specific_action'
@@ -361,7 +374,8 @@ headers = {
                "long":["rat_type","teid","cause","seq"]
         
     },
-    "s1ap" : { "double":["procedurecode"]
+    "s1ap" : { "double":["procedurecode"],
+              "long":["nas_eps_nas_msg_emm_type","nas_eps_nas_msg_esm_type"]
     },
    "pfcp" : {"double":["msg_type"],
             "long":["seid","cause","seqno"]
@@ -376,6 +390,11 @@ headers = {
            "called_station_id"
            ]
        
+       },
+   "sgsap":{
+       "long":[
+           "msg_type","eps_location_update_type"
+           ]
        }
 }
 
