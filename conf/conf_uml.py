@@ -62,6 +62,7 @@ participant PCSCF1
 participant PCSCF2
 participant PCSCF3
 participant HSS
+participant MSC
 
 participant "AGW \\n 10.2.23.143" as AGW
 participant "RMS" as RMS
@@ -195,6 +196,14 @@ proto_formatter = {
 {revalidation_time}\\n\
 {result_code} \\n {experimental_result_code} \n\n",
         
+        #S6a
+        #3GPP-Insert-Subscriber-Data 
+        "319": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {session_id} \\n {cmd_code} \\n \
+{qos_class_identifier}\\n \
+{service_selection}\\n \
+{max_requested_bandwidth_dl} \\n {max_requested_bandwidth_ul}\\n \
+{apn_aggregate_max_bitrate_dl} \\n {apn_aggregate_max_bitrate_ul} \n\n",
+        
         #Sh
         #"Command Code: Subscribe-Notifications 
         "308": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {applicationid}, {cmd_code} \\n {data_reference} \\n {subs_req_type} \\n {send_data_indication} \\n {3gpp_service_ind} \n\n",
@@ -252,10 +261,14 @@ proto_formatter = {
         "response": "{src} {line} {dst} : <color {color}> {response_code} {response_phrase} \\n {content_type} \n\n"
     },
     "gtpv2": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {message_type} \\n {seq} \\n {teid} \\n {cause} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> GTP {message_type} \\n {seq} \\n {teid} \\n {cause} \\n \
+{ebi} \\n \
+{bearer_qos_label_qci} \\n \
+{bearer_qos_mbr_up} {bearer_qos_mbr_down} \\n \
+{bearer_qos_gbr_up} {bearer_qos_gbr_down} \n\n"
     },
     "s1ap": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {procedurecode} \\n {nas_eps_nas_msg_emm_type} \\n {nas_eps_nas_msg_esm_type} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> S1AP {procedurecode} \\n {nas_eps_nas_msg_emm_type} \\n {nas_eps_nas_msg_esm_type} \\n {nas_eps_emm_type_of_id} \\n {gsm_a_ie_mobileid_type} \\n {e212_imsi} {nas_eps_emm_m_tmsi} \\n {s1ap_CSFallbackIndicator} \\n {s1ap_radioNetwork} \n\n"
     },
    "pfcp": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
@@ -371,11 +384,19 @@ headers = {
         "short": ['x-3gpp-asserted-identity']
     },
     "gtpv2" : { "double":["message_type"],
-               "long":["rat_type","teid","cause","seq"]
+               "long":["rat_type","teid","cause","seq",
+                       "ebi",
+                       "bearer_qos_label_qci","bearer_qos_mbr_up","bearer_qos_mbr_down","bearer_qos_gbr_up","bearer_qos_gbr_down"
+                       ]
         
     },
     "s1ap" : { "double":["procedurecode"],
-              "long":["nas_eps_nas_msg_emm_type","nas_eps_nas_msg_esm_type"]
+              "long":["nas_eps_nas_msg_emm_type","nas_eps_nas_msg_esm_type",
+                      "mme_ue_s1ap_id",
+                      "e212_imsi","nas_eps_emm_m_tmsi",
+                      "nas_eps_emm_type_of_id","gsm_a_ie_mobileid_type",
+                      "s1ap_radioNetwork","s1ap_CSFallbackIndicator"
+                      ]
     },
    "pfcp" : {"double":["msg_type"],
             "long":["seid","cause","seqno"]
