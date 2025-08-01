@@ -24,7 +24,14 @@ hide unlinked
 skinparam backgroundColor #EEEEEE
 !theme vibrant
 
+'Uncomment line below to display title above the diagram
+'title {title}
 
+'List of participants will be generated from definition in participants() dict
+{participants_list}
+
+'Uncomment lines below if you wish to define local list of participants
+/'
 participant UE
 participant "UE-A" as 1.2.3.6
 participant "UE-B" as 1.2.3.7
@@ -33,36 +40,13 @@ participant "CSCF" as CSCF
 participant "TAS \\n 10.0.0.3 \\n 70772039000" as TAS
 participant "DRA" as DRA
 
-participant eNB_1
-participant eNB_2
-participant eNB_3
-participant eNB_4
-participant eNB_5
-participant MME
-participant MME_1
-participant MME_2
-participant SPGWC
-participant SPGWU
-
-
 participant PGW
 participant PGW1
 participant PGW2
 participant PGW3
 participant PGW4
 
-participant xGWC_2
-participant xGWC_1
-participant xGWU_PLB_1
-participant xGWU_PLB_2
-
 participant PCRF
-
-participant PCSCF1
-participant PCSCF2
-participant PCSCF3
-participant HSS
-participant MSC
 
 participant "AGW \\n 10.2.23.143" as AGW
 participant "RMS" as RMS
@@ -71,6 +55,7 @@ participant "MGCF/MSC \\n 10.68.19.1 \\n 79770000001" as MGCF
 participant "OCS \\n 79000000012" as OCS
 participant "BL \\n 79000000123" as BL
 participant "HLR" as HLR
+'/
 
 autonumber "<b>[000]"
 """
@@ -268,7 +253,7 @@ proto_formatter = {
 {bearer_qos_gbr_up} {bearer_qos_gbr_down} \n\n"
     },
     "s1ap": {
-        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> S1AP {procedurecode} \\n {nas_eps_nas_msg_emm_type} \\n {nas_eps_nas_msg_esm_type} \\n {nas_eps_emm_type_of_id} \\n {gsm_a_ie_mobileid_type} \\n {e212_imsi} {nas_eps_emm_m_tmsi} \\n {s1ap_CSFallbackIndicator} \\n {s1ap_radioNetwork} \n\n"
+        "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> S1AP {procedurecode} \\n {nas_eps_nas_msg_emm_type} \\n {nas_eps_nas_msg_esm_type} \\n {nas_eps_emm_type_of_id} \\n {gsm_a_ie_mobileid_type} \\n {e212_imsi} {nas_eps_emm_m_tmsi} \\n {CSFallbackIndicator} \\n {radioNetwork} \n\n"
     },
    "pfcp": {
         "request": "{src} {line} {dst} : Frame #{frame_num} at UTC {sniff_timestamp} \\n <color {color}> {msg_type} \\n {seqno} \\n {seid} \\n {cause} \n\n"       
@@ -395,7 +380,7 @@ headers = {
                       "mme_ue_s1ap_id",
                       "e212_imsi","nas_eps_emm_m_tmsi",
                       "nas_eps_emm_type_of_id","gsm_a_ie_mobileid_type",
-                      "s1ap_radioNetwork","s1ap_CSFallbackIndicator"
+                      "radioNetwork","CSFallbackIndicator"
                       ]
     },
    "pfcp" : {"double":["msg_type"],

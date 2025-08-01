@@ -388,7 +388,10 @@ def process_cap(cap_file, cap_filter, uml_file, diam_filter):
         dir=os.getcwd()
     )
     
-    uml = UML(uml_intro.format(comment=uml_legend))
+    uml = UML(uml_intro.format(comment=uml_legend,
+                               title=os.path.splitext(os.path.basename(cap_file))[0],
+                               participants_list="\n".join(map(lambda item: f"participant \"{item[1]}\"", participants.items()))
+                               ))
     
     print("Processing file: ",cap_file)
     print("")

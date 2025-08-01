@@ -43,10 +43,12 @@ Plantuml: http://plantuml.com/download
 
 * Added SGSAP interface
 
+* Now participants list in uml is automatically generated from participants() dict
+
 # Configure
 
-edit conf/conf_uml.py file:  
-1. define 'participants' dict  
+edit conf/conf_uml.py and conf_participants.py files:
+1. define 'participants' dict or csv file inside participants dir
 2. define 'uml_intro'  
 3. define plantuml library and java path in JAVA_BIN and plantuml_jar params 
 

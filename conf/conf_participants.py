@@ -64,3 +64,4 @@ participants.update( {
 if __name__ == "__main__":
     print ("participants:")
     print ("\n".join(map(lambda item: f"{item[0]},{item[1]}", participants.items())))
+
